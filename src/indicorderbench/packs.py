@@ -147,7 +147,7 @@ def _check_references(path: Path, scenario: Scenario, menu: Menu, problems: list
 
 def _load(root: Path) -> tuple[Pack | None, list[str]]:
     problems: list[str] = []
-    root = Path(root)
+    root = Path(root).resolve()
     manifest_path = root / "pack.yaml"
     if not manifest_path.exists():
         return None, [f"{manifest_path}: missing"]

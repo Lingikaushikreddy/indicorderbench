@@ -392,7 +392,7 @@ correction, for example) so the contract is satisfiable.
   `SIMULATOR_INVALID` -> `<skipped>`; `INFRA_ERROR` -> `<error>`. A scenario with mixed trial
   outcomes is a failure if any valid trial failed.
 - HTML: one file plus `assets/` for copied clips. Sections: header (pack, agent, run info);
-  summary cards (pass rate, pass^k for k=trials, invalid, infra, p50/p95 latency); tables by
+  summary cards (pass rate, pass^k for the highest k that has a value, labelled with that k, invalid, infra, p50/p95 latency); tables by
   language and by category with Wilson intervals; baseline comparison table when a baseline is
   given (per-scenario delta, regressions highlighted, new/removed scenarios listed); scenario
   list with outcome chips per trial; expandable scenario detail with the field-check table,

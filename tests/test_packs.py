@@ -135,3 +135,17 @@ def test_clip_path_falls_back_to_language_defaults_for_shared_clarifications(tmp
     specific.parent.mkdir(parents=True)
     specific.write_bytes(b"RIFF")
     assert pack.clip_path("en_quantity_01", reply, Language.EN_IN) == specific
+
+
+def test_pack_root_is_absolute_even_when_loaded_from_a_relative_path(tmp_path: Path, monkeypatch):
+    """Transcripts store clip paths derived from the root; they must survive a cwd change."""
+    shutil.copytree(FIX, tmp_path / "p")
+    monkeypatch.chdir(tmp_path)
+    pack = load_pack(Path("p"))
+    assert pack.root.is_absolute() and pack.root == (tmp_path / "p").resolve()
+    clip = tmp_path / "p" / "clips" / "en_quantity_01" / "t1.wav"
+    clip.parent.mkdir(parents=True)
+    clip.write_bytes(b"RIFF")
+    turn = pack.scenario("en_quantity_01").caller.turns[0]
+    resolved = pack.clip_path("en_quantity_01", turn, Language.EN_IN)
+    assert resolved is not None and resolved.is_absolute()
