@@ -103,12 +103,16 @@ def _short(text: str) -> str:
 
 
 def _cards(suite: SuiteResult) -> list[Card]:
-    m, k = suite.metrics, suite.run.trials
+    m, trials = suite.metrics, suite.run.trials
     p50, p95 = m.latency_p50_ms, m.latency_p95_ms
+    # pass^k is None once any scenario has fewer than k valid trials: show the highest k
+    # that has a value, and say why the run's own k is missing.
+    available = [k for k, v in m.pass_k.items() if v is not None]
+    k = max(available, default=trials)
     pass_k = m.pass_k.get(k)
     pass_k_sub = "chance a single trial passes" if k == 1 else f"chance all {k} trials pass"
-    if pass_k is None and m.n_valid:
-        pass_k_sub = f"needs {k} valid trials in every scenario"
+    if k < trials:
+        pass_k_sub += f" · pass^{trials} needs {trials} valid trials in every scenario"
     return [
         Card(
             "card-pass-rate",

@@ -55,7 +55,9 @@ def test_header_cards_and_breakdowns(tmp_path: Path) -> None:
     assert card_value(html, "card-pass-rate") == "83.3%"  # mean of 0.5, 1.0, 1.0
     assert card_value(html, "card-invalid") == "1"
     assert card_value(html, "card-infra") == "2"
-    assert "pass<sup>2</sup>" in block(html, "article", "card-pass-k")
+    # hien_correction_01 has one valid trial, so pass^2 is unavailable and the card falls to k=1
+    assert "pass<sup>1</sup>" in block(html, "article", "card-pass-k")
+    assert card_value(html, "card-pass-k") == "83.3%"
     by_lang = block(html, "table", "by-language")
     lo, hi = wilson_interval(3, 4)
     assert "95% CI (Wilson)" in by_lang and "en-IN" in by_lang and "hi-en" in by_lang
@@ -161,6 +163,18 @@ def test_pass_k_card_uses_run_trials(tmp_path: Path, trials: int) -> None:
     html = render(tmp_path, make_suite({"en_quantity_01": [P] * trials}))
     assert f"pass<sup>{trials}</sup>" in html
     assert card_value(html, "card-pass-k") == "100.0%"
+
+
+def test_pass_k_card_falls_back_to_highest_available_k(tmp_path: Path) -> None:
+    # 3 trials per scenario, one simulator-invalid trial: pass^3 is None, pass^2 is not.
+    suite = make_suite({"en_quantity_01": [P, P, F], "en_modifier_01": [P, INV, P]})
+    assert suite.metrics.pass_k[3] is None
+    assert suite.metrics.pass_k[2] == pytest.approx((1 / 3 + 1) / 2)
+    html = render(tmp_path, suite)
+    card = block(html, "article", "card-pass-k")
+    assert "pass<sup>2</sup>" in card and "pass<sup>3</sup>" not in card
+    assert card_value(html, "card-pass-k") == "66.7%"
+    assert "needs 3 valid trials in every scenario" in card
 
 
 def test_distinct_clips_never_overwrite_and_names_stay_inside_assets(tmp_path: Path) -> None:
