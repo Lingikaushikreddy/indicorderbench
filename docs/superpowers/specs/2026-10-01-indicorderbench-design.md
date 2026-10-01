@@ -408,7 +408,7 @@ correction, for example) so the contract is satisfiable.
 |---|---|
 | `iob validate PACK` | schema and referential integrity; clips present when referenced |
 | `iob ls PACK [--tag] [--language] [--category]` | list scenarios |
-| `iob run PACK --agent SPEC [--trials N] [--modality text|audio|both] [--tag T] [--language L] [--category C] [--out DIR] [--baseline results.json] [--fail-under 0.9] [--max-regression 0.05] [--seed S] [--timeout-turn 30] [--timeout-trial 300]` | run the suite; writes `results.json`, `junit.xml`, `report.html` into `--out` |
+| `iob run PACK --agent SPEC [--trials N] [--modality text|audio|both] [--tag T] [--language L] [--category C] [--id ID] [--out DIR] [--baseline results.json] [--fail-under 0.9] [--max-regression 0.05] [--allow-infra N] [--backend-host H] [--backend-port P] [--backend-url URL] [--seed S] [--timeout-turn 30] [--timeout-trial 300] [--max-turns 20]` | run the suite; writes `results.json`, `junit.xml`, `report.html` into `--out`; exit 1 when infra errors exceed `--allow-infra` |
 | `iob report results.json --out DIR` | regenerate HTML from JSON |
 | `iob compare BASE CURRENT [--max-regression]` | print regression table; exit 2 on regression |
 | `iob demo --out DIR` | run `builtin:buggy` then `builtin:correct` on the smoke tag and write a comparison report |

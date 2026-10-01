@@ -28,4 +28,5 @@ First release.
   Sarvam saaras STT, oracle transcriber, clip manifest, and an offline placeholder TTS
   (`--provider silence`) so audio-modality runs work without API keys.
 - `examples/http_agent_shim.py`: the reference agent behind the HTTP turn protocol.
-- `iob` CLI: validate, ls, run, report, compare, demo, synth, perturb, serve-backend.
+- `iob` CLI: validate, ls, run, report, compare, demo, synth, perturb, serve-backend;
+  `iob run` takes `--allow-infra`, `--backend-host`, `--backend-port` and `--backend-url`.

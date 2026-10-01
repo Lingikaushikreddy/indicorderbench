@@ -7,7 +7,7 @@ the most useful ones right now.
 
 | Area | What helps | Where |
 |---|---|---|
-| Language review | A native Hindi/Hinglish speaker reviewing the 20 Hinglish scenarios for naturalness and regional phrasing | `packs/starter/REVIEW.md`, set `review_status: reviewed` |
+| Language review | A native Hindi/Hinglish speaker reviewing the 21 Hinglish scenarios for naturalness and regional phrasing | `packs/starter/REVIEW.md`, set `review_status: reviewed` |
 | New scenarios | Real failures you have seen an agent make, as a scenario with acceptable end states | `docs/scenarios.md` |
 | New language packs | Telugu and Tamil are next; copy `packs/starter`, translate, add aliases, get a native review | `packs/<lang>/` |
 | Adapters | LiveKit, Pipecat, Vapi, Retell: a turn endpoint or a native adapter | `docs/adapters.md`, `src/indicorderbench/adapters/` |
