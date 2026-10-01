@@ -1,0 +1,30 @@
+id: en_correction_02
+title: Veg biryani swapped for chicken biryani
+language: en-IN
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [item-swap, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One veg biryani."
+    - id: t2
+      text: "Sorry, make that a chicken biryani instead."
+  clarifications:
+    - id: which_biryani
+      match: ["which biryani", "veg or chicken", "chicken or veg"]
+      reply: {text: "Chicken biryani."}
+      max_uses: 2
+    - id: spice
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
+      reply: {text: "Medium."}
+      max_uses: 1
+expected:
+  - id: chicken_only
+    description: One chicken biryani and no veg biryani
+    orders:
+      - lines:
+          - {item_id: chicken_biryani, quantity: 1}

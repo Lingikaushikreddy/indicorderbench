@@ -1,0 +1,31 @@
+id: en_modifier_04
+title: Sugar levels across two turns
+language: en-IN
+category: modifier
+menu: starter_qsr
+difficulty: medium
+tags: [sugar, multi-turn, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "A mango lassi with less sugar."
+    - id: t2
+      text: "And a masala chai, no sugar."
+  clarifications:
+    - id: sugar_lassi
+      match: ["lassi.*sugar\\?", "sugar.*lassi\\?"]
+      reply: {text: "Less sugar in the lassi."}
+      max_uses: 2
+    - id: sugar_chai
+      match: ["chai.*sugar\\?", "sugar.*chai\\?", "sugar\\?"]
+      reply: {text: "No sugar in the chai."}
+      max_uses: 2
+expected:
+  - id: drinks
+    description: Lassi with less sugar, chai with no sugar
+    orders:
+      - lines:
+          - {item_id: mango_lassi, quantity: 1, modifiers: {sugar: less_sugar}}
+          - {item_id: masala_chai, quantity: 1, modifiers: {sugar: no_sugar}}

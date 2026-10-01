@@ -1,0 +1,28 @@
+id: hien_modifier_02
+title: Chicken wrap, extra cheese aur extra paneer
+language: hi-en
+category: modifier
+menu: starter_qsr
+difficulty: medium
+tags: [addition, non-exclusive-extras, single-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek chicken wrap, extra cheese aur extra paneer daal ke."
+  clarifications:
+    - id: extras
+      match: ["konsa extra", "kaunsa extra", "extras\\?", "extra\\?"]
+      reply: {text: "Extra cheese aur extra paneer."}
+      max_uses: 2
+    - id: kitne
+      match: ["kitne"]
+      reply: {text: "Ek hi."}
+      max_uses: 1
+expected:
+  - id: loaded_wrap
+    description: One chicken wrap with both extras
+    orders:
+      - lines:
+          - {item_id: chicken_wrap, quantity: 1, modifiers: {extras: [extra_cheese, extra_paneer]}}

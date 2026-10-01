@@ -1,0 +1,29 @@
+id: hien_modifier_03
+title: Ek biryani teekha, doosri normal
+language: hi-en
+category: modifier
+menu: starter_qsr
+difficulty: medium
+tags: [spice-level, modifier-on-one-line, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek chicken biryani zyada teekha, aur ek veg biryani."
+  clarifications:
+    - id: teekha_veg
+      match: ["veg biryani.*teekh", "veg.*kitna teekha"]
+      reply: {text: "Veg biryani medium."}
+      max_uses: 2
+    - id: teekha
+      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      reply: {text: "Chicken biryani zyada teekha, veg biryani medium."}
+      max_uses: 2
+expected:
+  - id: two_biryanis
+    description: Chicken biryani spicy, veg biryani at the default spice level
+    orders:
+      - lines:
+          - {item_id: chicken_biryani, quantity: 1, modifiers: {spice: spicy}}
+          - {item_id: veg_biryani, quantity: 1, modifiers: {spice: medium}}

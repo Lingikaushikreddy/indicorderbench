@@ -1,0 +1,32 @@
+id: hien_cancellation_01
+title: Order place hone ke baad cancel
+language: hi-en
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [smoke, cancel-after-submit]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek mango lassi, bas itna hi."
+      is_closing: true
+    - id: t2
+      text: "Order cancel kar do."
+    - id: t3
+      text: "Nahi, bas. Bye."
+      is_closing: true
+  clarifications:
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+    - id: pakka_cancel
+      match: ["pakka cancel", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
+      reply: {text: "Haan, cancel kar do."}
+      max_uses: 1
+expected:
+  - id: no_order
+    description: No active order remains
+    orders: []

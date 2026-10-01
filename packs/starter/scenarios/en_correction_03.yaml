@@ -1,0 +1,30 @@
+id: en_correction_03
+title: Spice level corrected after the readback
+language: en-IN
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [modifier-correction, after-readback, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One chicken wrap, extra spicy."
+    - id: t2
+      text: "Actually, make it mild."
+  clarifications:
+    - id: spice
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy", "mild or spicy"]
+      reply: {text: "Mild, please."}
+      max_uses: 2
+    - id: onion
+      match: ["with or without onion", "onion\\?", "onions\\?"]
+      reply: {text: "With onion is fine."}
+      max_uses: 1
+expected:
+  - id: mild_wrap
+    description: One chicken wrap at mild spice
+    orders:
+      - lines:
+          - {item_id: chicken_wrap, quantity: 1, modifiers: {spice: mild}}

@@ -1,0 +1,36 @@
+id: hien_duplicate_submission_03
+title: Order repeat karwaya, phir place ke baad confirm
+language: hi-en
+category: duplicate_submission
+menu: starter_qsr
+difficulty: hard
+tags: [readback, confirm-after-placed, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Do samosa aur ek mango lassi."
+    - id: t2
+      text: "Ek baar order repeat karo."
+    - id: t3
+      text: "Haan sahi hai. Bas itna hi."
+      is_closing: true
+    - id: t4
+      text: "Theek hai, confirm kar do."
+  clarifications:
+    - id: kitne_samosa
+      match: ["kitne samos", "samosa kitne"]
+      reply: {text: "Do samosa."}
+      max_uses: 2
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+expected:
+  - id: once
+    description: Exactly one active order with two samosas and a lassi
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 2}
+          - {item_id: mango_lassi, quantity: 1}

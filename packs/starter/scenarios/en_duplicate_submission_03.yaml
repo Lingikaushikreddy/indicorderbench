@@ -1,0 +1,36 @@
+id: en_duplicate_submission_03
+title: Readback requested, then confirmed after placing
+language: en-IN
+category: duplicate_submission
+menu: starter_qsr
+difficulty: hard
+tags: [readback, confirm-after-placed, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Two samosas and one mango lassi."
+    - id: t2
+      text: "Can you repeat that back to me?"
+    - id: t3
+      text: "Yes, that's right. That's all."
+      is_closing: true
+    - id: t4
+      text: "Perfect. Confirm it, please."
+  clarifications:
+    - id: how_many_samosas
+      match: ["how many samosa", "samosas\\?"]
+      reply: {text: "Two samosas."}
+      max_uses: 2
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+expected:
+  - id: once
+    description: Exactly one active order with two samosas and a lassi
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 2}
+          - {item_id: mango_lassi, quantity: 1}

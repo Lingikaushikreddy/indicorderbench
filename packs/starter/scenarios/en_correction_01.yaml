@@ -1,0 +1,24 @@
+id: en_correction_01
+title: Two wraps corrected to one mid-sentence
+language: en-IN
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [smoke, mid-order-correction, quantity-correction]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Two paneer wraps... actually, make it one."
+  clarifications:
+    - id: how_many
+      match: ["how many", "one or two\\?"]
+      reply: {text: "One. Just one paneer wrap."}
+      max_uses: 2
+expected:
+  - id: one_wrap
+    description: One active order with a single paneer wrap
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 1}

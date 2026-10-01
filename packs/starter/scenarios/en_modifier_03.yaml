@@ -1,0 +1,29 @@
+id: en_modifier_03
+title: Spicy on one of two biryanis
+language: en-IN
+category: modifier
+menu: starter_qsr
+difficulty: medium
+tags: [spice-level, modifier-on-one-line, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One chicken biryani, extra spicy, and one veg biryani."
+  clarifications:
+    - id: spice_veg
+      match: ["veg biryani.*spic", "spice level for the veg", "how spicy.*veg"]
+      reply: {text: "Medium for the veg biryani."}
+      max_uses: 2
+    - id: spice_chicken
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
+      reply: {text: "Extra spicy for the chicken biryani, medium for the veg."}
+      max_uses: 2
+expected:
+  - id: two_biryanis
+    description: Chicken biryani spicy, veg biryani at the default spice level
+    orders:
+      - lines:
+          - {item_id: chicken_biryani, quantity: 1, modifiers: {spice: spicy}}
+          - {item_id: veg_biryani, quantity: 1, modifiers: {spice: medium}}

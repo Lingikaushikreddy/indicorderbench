@@ -1,0 +1,30 @@
+id: hien_cancellation_02
+title: Ek line hata do
+language: hi-en
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [remove-line, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Do samosa aur ek masala chai."
+    - id: t2
+      text: "Chai hata do."
+  clarifications:
+    - id: konsa_item
+      match: ["konsa item", "kaunsa item", "konsa hataun", "chai ya samosa"]
+      reply: {text: "Chai."}
+      max_uses: 2
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+expected:
+  - id: samosas_only
+    description: Two samosas and no chai
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 2}

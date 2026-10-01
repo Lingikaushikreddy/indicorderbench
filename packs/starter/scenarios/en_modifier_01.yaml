@@ -1,0 +1,28 @@
+id: en_modifier_01
+title: One paneer wrap without onion
+language: en-IN
+category: modifier
+menu: starter_qsr
+difficulty: easy
+tags: [smoke, exclusion, single-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One paneer wrap with no onion, please."
+  clarifications:
+    - id: onion
+      match: ["with or without onion", "onion\\?", "onions\\?"]
+      reply: {text: "No onion, please."}
+      max_uses: 2
+    - id: how_many
+      match: ["how many"]
+      reply: {text: "Just one."}
+      max_uses: 1
+expected:
+  - id: wrap_no_onion
+    description: One active order with one paneer wrap without onion
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 1, modifiers: {onion: no_onion}}

@@ -1,0 +1,28 @@
+id: hien_cancellation_03
+title: Place hone se pehle poora order cancel
+language: hi-en
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [cancel-before-submit, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek butter chicken aur do butter naan."
+    - id: t2
+      text: "Nahi, poora order cancel kar do."
+  clarifications:
+    - id: pakka_cancel
+      match: ["pakka cancel", "poora order cancel\\?", "sab cancel\\?", "cancel kar d(oo|u)n\\?"]
+      reply: {text: "Haan, sab cancel kar do."}
+      max_uses: 1
+    - id: teekha
+      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      reply: {text: "Medium."}
+      max_uses: 1
+expected:
+  - id: no_order
+    description: Nothing was placed
+    orders: []

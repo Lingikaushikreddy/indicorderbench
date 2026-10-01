@@ -1,0 +1,34 @@
+id: en_cancellation_04
+title: Cancel after placing, then order something else
+language: en-IN
+category: cancellation
+menu: starter_qsr
+difficulty: hard
+tags: [cancel-after-submit, reorder, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One dal makhani and two butter naans, that's it."
+      is_closing: true
+    - id: t2
+      text: "Cancel that order please, I changed my mind."
+    - id: t3
+      text: "Let me get one veg biryani then, that's all."
+      is_closing: true
+  clarifications:
+    - id: sure_cancel
+      match: ["sure you want to cancel", "cancel the whole order\\?", "cancel it\\?"]
+      reply: {text: "Yes, cancel it."}
+      max_uses: 1
+    - id: spice
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
+      reply: {text: "Medium."}
+      max_uses: 1
+expected:
+  - id: biryani_only
+    description: Only the veg biryani order is active
+    orders:
+      - lines:
+          - {item_id: veg_biryani, quantity: 1}

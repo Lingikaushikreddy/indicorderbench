@@ -1,0 +1,33 @@
+id: hien_quantity_02
+title: Teen samosa aur ek chai
+language: hi-en
+category: quantity
+menu: starter_qsr
+difficulty: easy
+tags: [number-words, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Teen samosa aur ek masala chai de do."
+  clarifications:
+    - id: kitne_samosa
+      match: ["kitne samos", "samosa kitne"]
+      reply: {text: "Teen samosa."}
+      max_uses: 2
+    - id: kitni_chai
+      match: ["kitni chai", "chai kitni", "kitne chai"]
+      reply: {text: "Ek hi chai."}
+      max_uses: 2
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+expected:
+  - id: samosas_and_chai
+    description: Three samosas and one masala chai in one order
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 3}
+          - {item_id: masala_chai, quantity: 1}

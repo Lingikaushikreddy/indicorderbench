@@ -1,0 +1,31 @@
+id: en_correction_04
+title: Coffee count corrected after the agent asks for more
+language: en-IN
+category: correction
+menu: starter_qsr
+difficulty: hard
+tags: [quantity-correction, named-line, after-agent-asks, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Two cold coffees and one gulab jamun."
+    - id: t2
+      text: "Wait, change the coffee to three."
+  clarifications:
+    - id: how_many_coffee
+      match: ["how many (cold )?coffee", "coffees\\?"]
+      reply: {text: "Three cold coffees."}
+      max_uses: 2
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+expected:
+  - id: three_coffees
+    description: Three cold coffees and one gulab jamun
+    orders:
+      - lines:
+          - {item_id: cold_coffee, quantity: 3}
+          - {item_id: gulab_jamun, quantity: 1}

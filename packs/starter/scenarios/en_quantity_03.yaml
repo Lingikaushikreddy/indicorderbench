@@ -1,0 +1,34 @@
+id: en_quantity_03
+title: Four naans, two dal makhani and one gulab jamun
+language: en-IN
+category: quantity
+menu: starter_qsr
+difficulty: medium
+tags: [number-words, above-two, three-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Four butter naans and two dal makhani, and one gulab jamun."
+  clarifications:
+    - id: how_many_naan
+      match: ["how many (butter )?naan"]
+      reply: {text: "Four naans."}
+      max_uses: 2
+    - id: how_many_dal
+      match: ["how many dal"]
+      reply: {text: "Two dal makhani."}
+      max_uses: 2
+    - id: how_many_jamun
+      match: ["how many gulab"]
+      reply: {text: "One gulab jamun."}
+      max_uses: 2
+expected:
+  - id: family_order
+    description: Four naans, two dal makhani and one gulab jamun
+    orders:
+      - lines:
+          - {item_id: butter_naan, quantity: 4}
+          - {item_id: dal_makhani, quantity: 2}
+          - {item_id: gulab_jamun, quantity: 1}

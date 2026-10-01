@@ -1,0 +1,32 @@
+id: en_cancellation_01
+title: Cancel the order after it is placed
+language: en-IN
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [smoke, cancel-after-submit]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One mango lassi, that's all."
+      is_closing: true
+    - id: t2
+      text: "Cancel the order, please."
+    - id: t3
+      text: "No, that's all. Bye."
+      is_closing: true
+  clarifications:
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+    - id: sure_cancel
+      match: ["sure you want to cancel", "cancel the whole order\\?", "cancel it\\?"]
+      reply: {text: "Yes, cancel it."}
+      max_uses: 1
+expected:
+  - id: no_order
+    description: No active order remains
+    orders: []

@@ -1,0 +1,30 @@
+id: en_cancellation_02
+title: Remove one line before submitting
+language: en-IN
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [remove-line, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Two samosas and one masala chai."
+    - id: t2
+      text: "Remove the chai, please."
+  clarifications:
+    - id: which_item
+      match: ["which (item|one)", "remove which", "the chai or the samosas"]
+      reply: {text: "The chai."}
+      max_uses: 2
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+expected:
+  - id: samosas_only
+    description: Two samosas and no chai
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 2}

@@ -1,0 +1,34 @@
+id: hien_quantity_03
+title: Chaar naan, do dal makhani aur ek gulab jamun
+language: hi-en
+category: quantity
+menu: starter_qsr
+difficulty: medium
+tags: [number-words, above-two, three-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Chaar butter naan aur do dal makhani, aur ek gulab jamun bhi."
+  clarifications:
+    - id: kitne_naan
+      match: ["kitne naan", "naan kitne"]
+      reply: {text: "Chaar naan."}
+      max_uses: 2
+    - id: kitni_dal
+      match: ["kitni dal", "kitne dal", "dal kitni"]
+      reply: {text: "Do dal makhani."}
+      max_uses: 2
+    - id: kitne_jamun
+      match: ["kitne gulab", "gulab jamun kitne"]
+      reply: {text: "Ek gulab jamun."}
+      max_uses: 2
+expected:
+  - id: family_order
+    description: Four naans, two dal makhani and one gulab jamun
+    orders:
+      - lines:
+          - {item_id: butter_naan, quantity: 4}
+          - {item_id: dal_makhani, quantity: 2}
+          - {item_id: gulab_jamun, quantity: 1}

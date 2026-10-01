@@ -1,0 +1,29 @@
+id: starter
+name: IndicOrderBench starter pack
+version: "0.1.0"
+menu: menu.yaml
+description: English and Hinglish ordering scenarios across five failure categories.
+defaults:
+  caller:
+    en-IN:
+      closing: {text: "That's all, thanks."}
+      confirm: {text: "Yes, please place the order."}
+      fallback: {text: "Yes, that's right."}
+      nudge: {text: "Please place the order now."}
+      confirm_patterns: ["shall i (place|confirm)", "place (the|your) order\\?", "confirm (the|your) order", "should i place"]
+      goodbye_patterns: ["order (is )?placed", "already placed", "thank you for (your )?order", "goodbye"]
+      question_patterns: ["which", "what ", "how many", "would you like", "do you want"]
+      # No pack-level "anything else" rule: ScriptedCaller answers clarification rules before
+      # it continues the script, so such a rule would close every multi-turn scenario after the
+      # agent's first reply. The default closing turn answers "Anything else?" once the script
+      # is exhausted.
+      clarifications: []
+    hi-en:
+      closing: {text: "Bas itna hi, thanks."}
+      confirm: {text: "Haan, order place kar do."}
+      fallback: {text: "Haan, theek hai."}
+      nudge: {text: "Ab order place kar do."}
+      confirm_patterns: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      goodbye_patterns: ["order place ho gaya", "pehle se place", "shukriya", "dhanyavaad"]
+      question_patterns: ["kitne", "kitna", "konsa", "kaunsa", "kya ", "chahiye\\?"]
+      clarifications: []

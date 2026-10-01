@@ -1,0 +1,156 @@
+# Starter QSR menu: 12 items across wraps, mains, sides, drinks and desserts, with Hinglish
+# aliases. Aliases are matched as whole-word phrases after normalisation, longest first.
+id: starter_qsr
+name: Starter QSR menu
+currency: INR
+modifier_groups:
+  - id: onion
+    name: Onion
+    exclusive: true
+    default: with_onion
+    options:
+      - id: with_onion
+        name: With onion
+        aliases: [with onion, with onions, pyaaz ke saath, pyaaz wala, onion wala]
+      - id: no_onion
+        name: No onion
+        aliases:
+          - no onion
+          - no onions
+          - without onion
+          - without onions
+          - bina pyaaz
+          - bina onion
+          - pyaaz nahi
+          - onion nahi
+          - pyaaz mat dalna
+          - onion mat dalna
+          - pyaaz ke bina
+  - id: spice
+    name: Spice level
+    exclusive: true
+    default: medium
+    options:
+      - id: mild
+        name: Mild
+        aliases: [mild, less spicy, not spicy, less spice, mild spice, kam teekha, kam mirchi]
+      - id: medium
+        name: Medium
+        aliases: [medium, medium spicy, medium spice, medium teekha, normal spice]
+      - id: spicy
+        name: Spicy
+        aliases:
+          - spicy
+          - extra spicy
+          - very spicy
+          - teekha
+          - zyada teekha
+          - bahut teekha
+          - extra teekha
+          - spicy wala
+  - id: extras
+    name: Extras
+    exclusive: false
+    options:
+      - id: extra_cheese
+        name: Extra cheese
+        price_delta: 30
+        aliases: [extra cheese, with cheese, add cheese, cheese zyada, zyada cheese, cheese daal ke]
+      - id: extra_paneer
+        name: Extra paneer
+        price_delta: 40
+        aliases: [extra paneer, paneer zyada, zyada paneer]
+  - id: sugar
+    name: Sugar
+    exclusive: true
+    default: normal_sugar
+    options:
+      - id: normal_sugar
+        name: Normal sugar
+        aliases: [normal sugar, regular sugar, with sugar, normal cheeni, cheeni ke saath]
+      - id: less_sugar
+        name: Less sugar
+        aliases: [less sugar, half sugar, light sugar, kam sugar, kam cheeni, kam meetha, thodi cheeni]
+      - id: no_sugar
+        name: No sugar
+        aliases:
+          - no sugar
+          - without sugar
+          - sugar free
+          - sugarless
+          - bina sugar
+          - sugar nahi
+          - bina cheeni
+          - cheeni nahi
+          - cheeni mat dalna
+          - bina shakkar
+          - shakkar nahi
+items:
+  - id: paneer_wrap
+    name: Paneer Wrap
+    aliases: [paneer wrap, paneer wraps, paneer ka wrap, paneer roll, paneer kathi roll]
+    price: 180
+    category: wraps
+    modifier_groups: [onion, spice, extras]
+  - id: chicken_wrap
+    name: Chicken Wrap
+    aliases: [chicken wrap, chicken wraps, chicken ka wrap, chicken roll, chicken kathi roll]
+    price: 200
+    category: wraps
+    modifier_groups: [onion, spice, extras]
+  - id: veg_biryani
+    name: Veg Biryani
+    aliases: [veg biryani, veg biryanis, vegetable biryani, veg biriyani, sabzi biryani]
+    price: 220
+    category: mains
+    modifier_groups: [spice]
+  - id: chicken_biryani
+    name: Chicken Biryani
+    aliases: [chicken biryani, chicken biryanis, chicken biriyani, murgh biryani]
+    price: 260
+    category: mains
+    modifier_groups: [spice]
+  - id: butter_chicken
+    name: Butter Chicken
+    aliases: [butter chicken, murgh makhani, makhani chicken]
+    price: 320
+    category: mains
+    modifier_groups: [spice]
+  - id: dal_makhani
+    name: Dal Makhani
+    aliases: [dal makhani, daal makhani, dal makhni, daal makhni]
+    price: 240
+    category: mains
+  - id: butter_naan
+    name: Butter Naan
+    aliases: [butter naan, butter naans, naan, naans, makhan naan]
+    price: 50
+    category: sides
+  - id: samosa
+    name: Samosa
+    aliases: [samosa, samosas, samose]
+    price: 30
+    category: sides
+  - id: masala_chai
+    name: Masala Chai
+    aliases: [masala chai, chai, tea, masala tea, cutting chai]
+    price: 40
+    category: drinks
+    modifier_groups: [sugar]
+  - id: mango_lassi
+    name: Mango Lassi
+    aliases: [mango lassi, lassi, aam lassi, aam ki lassi, mango lassie]
+    price: 90
+    category: drinks
+    modifier_groups: [sugar]
+  - id: cold_coffee
+    name: Cold Coffee
+    aliases: [cold coffee, cold coffees, iced coffee, thandi coffee, coffee]
+    price: 120
+    category: drinks
+    modifier_groups: [sugar]
+  - id: gulab_jamun
+    name: Gulab Jamun
+    aliases: [gulab jamun, gulab jamuns, gulab jamoon, jamun]
+    price: 80
+    category: desserts

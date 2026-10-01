@@ -1,0 +1,24 @@
+id: hien_quantity_01
+title: Do paneer wrap
+language: hi-en
+category: quantity
+menu: starter_qsr
+difficulty: easy
+tags: [smoke, number-words, single-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Haan ji, do paneer wrap dena."
+  clarifications:
+    - id: kitne
+      match: ["kitne", "ek ya do"]
+      reply: {text: "Do."}
+      max_uses: 2
+expected:
+  - id: two_wraps
+    description: One active order with two paneer wraps
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 2}

@@ -1,0 +1,30 @@
+id: hien_correction_03
+title: Readback ke baad teekha kam
+language: hi-en
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [modifier-correction, after-readback, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek chicken wrap, zyada teekha."
+    - id: t2
+      text: "Actually, kam teekha kar do."
+  clarifications:
+    - id: teekha
+      match: ["kitna teekha", "teekha\\?", "spice level\\?", "kam ya zyada"]
+      reply: {text: "Kam teekha."}
+      max_uses: 2
+    - id: pyaaz
+      match: ["pyaaz\\?", "onion\\?", "pyaaz ke saath ya bina"]
+      reply: {text: "Pyaaz ke saath theek hai."}
+      max_uses: 1
+expected:
+  - id: mild_wrap
+    description: One chicken wrap at mild spice
+    orders:
+      - lines:
+          - {item_id: chicken_wrap, quantity: 1, modifiers: {spice: mild}}

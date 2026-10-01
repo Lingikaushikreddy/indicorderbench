@@ -1,0 +1,28 @@
+id: en_cancellation_03
+title: Cancel the whole order before it is placed
+language: en-IN
+category: cancellation
+menu: starter_qsr
+difficulty: medium
+tags: [cancel-before-submit, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "A butter chicken and two butter naans."
+    - id: t2
+      text: "Actually, cancel the whole order."
+  clarifications:
+    - id: sure_cancel
+      match: ["sure you want to cancel", "cancel everything\\?", "cancel the whole order\\?"]
+      reply: {text: "Yes, cancel everything."}
+      max_uses: 1
+    - id: spice
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
+      reply: {text: "Medium."}
+      max_uses: 1
+expected:
+  - id: no_order
+    description: Nothing was placed
+    orders: []

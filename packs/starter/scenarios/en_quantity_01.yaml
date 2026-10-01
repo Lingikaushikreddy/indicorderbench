@@ -1,0 +1,24 @@
+id: en_quantity_01
+title: Two paneer wraps
+language: en-IN
+category: quantity
+menu: starter_qsr
+difficulty: easy
+tags: [smoke, number-words, single-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Hi, two paneer wraps, please."
+  clarifications:
+    - id: how_many
+      match: ["how many", "one or two\\?"]
+      reply: {text: "Two."}
+      max_uses: 2
+expected:
+  - id: two_wraps
+    description: One active order with two paneer wraps
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 2}

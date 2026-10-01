@@ -1,0 +1,32 @@
+id: hien_duplicate_submission_02
+title: Order place hone ke baad "haan confirm"
+language: hi-en
+category: duplicate_submission
+menu: starter_qsr
+difficulty: medium
+tags: [confirm-after-placed]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek cold coffee aur ek gulab jamun, bas."
+      is_closing: true
+    - id: t2
+      text: "Haan, confirm kar do."
+  clarifications:
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+    - id: kitne
+      match: ["kitne"]
+      reply: {text: "Ek ek."}
+      max_uses: 1
+expected:
+  - id: once
+    description: Exactly one active order with a coffee and a gulab jamun
+    orders:
+      - lines:
+          - {item_id: cold_coffee, quantity: 1}
+          - {item_id: gulab_jamun, quantity: 1}

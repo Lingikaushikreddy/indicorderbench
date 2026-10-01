@@ -1,0 +1,32 @@
+id: hien_duplicate_submission_01
+title: Bas itna hi do baar
+language: hi-en
+category: duplicate_submission
+menu: starter_qsr
+difficulty: easy
+tags: [smoke, closing-twice]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek masala chai, bas itna hi."
+      is_closing: true
+    - id: t2
+      text: "Haan, bas itna hi, thanks."
+      is_closing: true
+  clarifications:
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+    - id: kitne
+      match: ["kitne"]
+      reply: {text: "Ek hi."}
+      max_uses: 1
+expected:
+  - id: one_chai_once
+    description: Exactly one active order with one masala chai
+    orders:
+      - lines:
+          - {item_id: masala_chai, quantity: 1}

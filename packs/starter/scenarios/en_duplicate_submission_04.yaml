@@ -1,0 +1,34 @@
+id: en_duplicate_submission_04
+title: Long pause, status check, then "place it"
+language: en-IN
+category: duplicate_submission
+menu: starter_qsr
+difficulty: hard
+tags: [long-pause, status-check, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "One butter chicken and two butter naans, that's all."
+      is_closing: true
+    - id: t2
+      text: "Hello? Are you still there? Did my order go through?"
+    - id: t3
+      text: "Okay, please place it then."
+  clarifications:
+    - id: spice
+      match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
+      reply: {text: "Medium."}
+      max_uses: 1
+    - id: how_many_naan
+      match: ["how many (butter )?naan"]
+      reply: {text: "Two naans."}
+      max_uses: 1
+expected:
+  - id: once
+    description: Exactly one active order with butter chicken and two naans
+    orders:
+      - lines:
+          - {item_id: butter_chicken, quantity: 1}
+          - {item_id: butter_naan, quantity: 2}

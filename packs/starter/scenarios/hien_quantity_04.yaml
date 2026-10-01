@@ -1,0 +1,35 @@
+id: hien_quantity_04
+title: Digits do turns mein
+language: hi-en
+category: quantity
+menu: starter_qsr
+difficulty: medium
+tags: [digits, multi-turn, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Mujhe 2 cold coffee chahiye."
+    - id: t2
+      text: "Aur 3 samosa bhi daal dena."
+  clarifications:
+    - id: kitni_coffee
+      match: ["kitni coffee", "coffee kitni", "kitne coffee"]
+      reply: {text: "Do cold coffee."}
+      max_uses: 2
+    - id: kitne_samosa
+      match: ["kitne samos", "samosa kitne"]
+      reply: {text: "Teen samosa."}
+      max_uses: 2
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+expected:
+  - id: coffees_and_samosas
+    description: Two cold coffees and three samosas
+    orders:
+      - lines:
+          - {item_id: cold_coffee, quantity: 2}
+          - {item_id: samosa, quantity: 3}

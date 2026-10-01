@@ -1,0 +1,35 @@
+id: en_quantity_04
+title: Digits across two turns
+language: en-IN
+category: quantity
+menu: starter_qsr
+difficulty: medium
+tags: [digits, multi-turn, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Can I get 2 cold coffees?"
+    - id: t2
+      text: "And 3 samosas as well."
+  clarifications:
+    - id: how_many_coffee
+      match: ["how many (cold )?coffee"]
+      reply: {text: "Two cold coffees."}
+      max_uses: 2
+    - id: how_many_samosas
+      match: ["how many samosa"]
+      reply: {text: "Three samosas."}
+      max_uses: 2
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+expected:
+  - id: coffees_and_samosas
+    description: Two cold coffees and three samosas
+    orders:
+      - lines:
+          - {item_id: cold_coffee, quantity: 2}
+          - {item_id: samosa, quantity: 3}

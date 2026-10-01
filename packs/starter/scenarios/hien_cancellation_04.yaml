@@ -1,0 +1,34 @@
+id: hien_cancellation_04
+title: Place ke baad cancel, phir naya order
+language: hi-en
+category: cancellation
+menu: starter_qsr
+difficulty: hard
+tags: [cancel-after-submit, reorder, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek dal makhani aur do butter naan, bas."
+      is_closing: true
+    - id: t2
+      text: "Yeh order cancel kar do, mann badal gaya."
+    - id: t3
+      text: "Ek veg biryani de do, bas itna hi."
+      is_closing: true
+  clarifications:
+    - id: pakka_cancel
+      match: ["pakka cancel", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
+      reply: {text: "Haan, cancel kar do."}
+      max_uses: 1
+    - id: teekha
+      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      reply: {text: "Medium."}
+      max_uses: 1
+expected:
+  - id: biryani_only
+    description: Only the veg biryani order is active
+    orders:
+      - lines:
+          - {item_id: veg_biryani, quantity: 1}

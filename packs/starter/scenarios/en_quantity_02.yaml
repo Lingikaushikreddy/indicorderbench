@@ -1,0 +1,33 @@
+id: en_quantity_02
+title: Three samosas and a chai
+language: en-IN
+category: quantity
+menu: starter_qsr
+difficulty: easy
+tags: [number-words, article-as-one, two-items]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "I'll have three samosas and a masala chai."
+  clarifications:
+    - id: how_many_samosas
+      match: ["how many samosa", "samosas\\?"]
+      reply: {text: "Three samosas."}
+      max_uses: 2
+    - id: how_many_chai
+      match: ["how many (masala )?chai", "how many tea"]
+      reply: {text: "Just one chai."}
+      max_uses: 2
+    - id: sugar
+      match: ["sugar\\?", "how much sugar"]
+      reply: {text: "Normal sugar."}
+      max_uses: 1
+expected:
+  - id: samosas_and_chai
+    description: Three samosas and one masala chai in one order
+    orders:
+      - lines:
+          - {item_id: samosa, quantity: 3}
+          - {item_id: masala_chai, quantity: 1}

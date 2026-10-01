@@ -1,0 +1,34 @@
+id: hien_duplicate_submission_04
+title: Lambi chuppi, status check, phir "place kar do"
+language: hi-en
+category: duplicate_submission
+menu: starter_qsr
+difficulty: hard
+tags: [long-pause, status-check, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Ek butter chicken aur do butter naan, bas itna hi."
+      is_closing: true
+    - id: t2
+      text: "Hello? Sun rahe ho? Mera order ho gaya kya?"
+    - id: t3
+      text: "Theek hai, order place kar do."
+  clarifications:
+    - id: teekha
+      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      reply: {text: "Medium."}
+      max_uses: 1
+    - id: kitne_naan
+      match: ["kitne naan", "naan kitne"]
+      reply: {text: "Do naan."}
+      max_uses: 1
+expected:
+  - id: once
+    description: Exactly one active order with butter chicken and two naans
+    orders:
+      - lines:
+          - {item_id: butter_chicken, quantity: 1}
+          - {item_id: butter_naan, quantity: 2}

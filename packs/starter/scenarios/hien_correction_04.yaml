@@ -1,0 +1,31 @@
+id: hien_correction_04
+title: Agent ke poochne par coffee teen
+language: hi-en
+category: correction
+menu: starter_qsr
+difficulty: hard
+tags: [quantity-correction, named-line, after-agent-asks, multi-turn]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Do cold coffee aur ek gulab jamun."
+    - id: t2
+      text: "Wait, coffee teen kar do."
+  clarifications:
+    - id: kitni_coffee
+      match: ["kitni coffee", "coffee kitni", "kitne coffee"]
+      reply: {text: "Teen cold coffee."}
+      max_uses: 2
+    - id: cheeni
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      reply: {text: "Normal cheeni."}
+      max_uses: 1
+expected:
+  - id: three_coffees
+    description: Three cold coffees and one gulab jamun
+    orders:
+      - lines:
+          - {item_id: cold_coffee, quantity: 3}
+          - {item_id: gulab_jamun, quantity: 1}
