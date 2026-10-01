@@ -39,3 +39,11 @@ def test_demo_artifacts_are_committed():
 def test_changelog_mentions_release():
     text = (REPO / "CHANGELOG.md").read_text(encoding="utf-8")
     assert "## [0.1.0]" in text and "42 scenarios" in text
+
+
+def test_scenarios_doc_never_recommends_an_anything_else_clarification():
+    """A pack-level rule matching "anything else" pre-empts scripted turn 2 of every scenario."""
+    text = (REPO / "docs" / "scenarios.md").read_text(encoding="utf-8")
+    match_lists = re.findall(r"match:\s*\[([^\]]*)\]", text)
+    assert match_lists, "expected at least one clarification example"
+    assert [m for m in match_lists if "anything else" in m.lower()] == []

@@ -67,7 +67,7 @@ Let a scenario have `n` valid trials (pass or fail) and `c` passes.
   that `k` randomly chosen trials of a scenario all pass. `pass^1` is the pass rate;
   `pass^3` punishes agents that are right two times out of three. Reported for `k = 1..trials`.
 - **Grouped rates** (by language, by category) pool trials and report a **Wilson 95%
-  interval**. With 40 scenarios and one trial each, intervals are wide; treat differences
+  interval**. With 42 scenarios and one trial each, intervals are wide; treat differences
   inside overlapping intervals as noise.
 - **Latency** = wall-clock time from sending the caller's utterance to receiving the agent's
   reply, per turn, reported as p50 and p95. It includes the agent's STT, reasoning, tool calls

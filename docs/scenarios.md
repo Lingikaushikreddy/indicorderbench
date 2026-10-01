@@ -88,9 +88,19 @@ defaults:
       max_fallbacks: 2
       max_nudges: 2
       clarifications:
-        - {id: anything_else_en, match: ["anything else"],
-           reply: {text: "No, that's all.", is_closing: true}, max_uses: 1}
+        - {id: how_many_en, match: ["how many"],
+           reply: {text: "Just the quantities I said, please."}, max_uses: 1}
 ```
+
+**Pack-level clarification rules must match only genuine questions.** They apply to every
+scenario in that language, and after each agent reply the caller checks clarification rules
+*before* it speaks the next scripted turn. A pack rule that matches something the agent says
+routinely, such as its readback or "Anything else?", fires after the agent's first reply and
+replaces scripted turn 2 in every multi-turn scenario. A rule matching `anything else` with
+`is_closing: true` would end each of those scenarios after its first turn. Leave "Anything
+else?" to the closing turn, which the caller speaks once the script is exhausted, and put
+scenario-specific answers (which wrap? how many lassis?) in the scenario's own
+`clarifications`.
 
 ## Menu
 
