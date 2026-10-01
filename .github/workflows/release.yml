@@ -1,0 +1,51 @@
+# Publishes to PyPI with Trusted Publishing (OIDC, no stored token) and creates a GitHub
+# release with the built artifacts, whenever a version tag is pushed:
+#
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# One-time setup on pypi.org (Account → Publishing → "Add a new pending publisher"):
+#   PyPI project name: indicorderbench   Owner: Lingikaushikreddy   Repository: indicorderbench
+#   Workflow name: release.yml           Environment name: pypi
+name: release
+on:
+  push:
+    tags: ["v*"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-extras --dev
+      - run: uv run pytest -q
+      - run: uv run iob validate packs/starter
+      - name: Check the tag matches the package version
+        run: |
+          v="$(uv run python -c 'import indicorderbench; print(indicorderbench.__version__)')"
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != version v$v"; exit 1; }
+      - run: uv build
+      - name: Refuse a wheel that carries audio clips
+        run: '! python -m zipfile -l dist/*.whl | grep -i "\.wav"'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # trusted publishing
+      contents: write   # GitHub release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

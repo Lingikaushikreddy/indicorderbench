@@ -41,6 +41,9 @@ Changelog = "https://github.com/Lingikaushikreddy/indicorderbench/blob/main/CHAN
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.sdist]
+exclude = ["docs/demo", "docs/images", "docs/superpowers", ".github", "examples/ci"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/indicorderbench"]
 

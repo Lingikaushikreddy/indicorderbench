@@ -46,7 +46,10 @@ CI runs the same commands on Python 3.11, 3.12 and 3.13.
 
 ## Release checklist
 
-Run these from a clean checkout of the release commit.
+Releases are published by `.github/workflows/release.yml` through PyPI Trusted Publishing
+when a `v*` tag is pushed; the tag must equal the version in `pyproject.toml` and
+`src/indicorderbench/__init__.py`, and `CHANGELOG.md` must have a dated section for it.
+Before tagging, run these from a clean checkout of the release commit.
 
 1. Validate the bundled pack and run the checks above:
 
