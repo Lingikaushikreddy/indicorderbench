@@ -11,7 +11,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, runtime_checkable
 
 from indicorderbench.adapters.protocol import (
     AgentFactory,
@@ -20,6 +19,7 @@ from indicorderbench.adapters.protocol import (
     SessionInfo,
 )
 from indicorderbench.agents.parsing import TERMINAL, Clause, Intent, parse_utterance
+from indicorderbench.audio.transcribe import Transcriber
 from indicorderbench.backend.state import BackendError, OrderBackend
 from indicorderbench.schemas.results import CartLine
 
@@ -30,13 +30,6 @@ BUGS: tuple[str, ...] = (
     "ignore_cancellation",
     "quantity_default_one",
 )
-
-
-@runtime_checkable
-class Transcriber(Protocol):
-    """Turns caller audio into text; the audio extra provides a real implementation."""
-
-    def transcribe(self, audio: bytes, language: str) -> str: ...
 
 
 _MESSAGES: dict[str, dict[str, str]] = {

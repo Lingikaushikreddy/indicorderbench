@@ -213,3 +213,54 @@ def make_suite(
         scenarios=scenarios,
         metrics=compute_metrics(scenarios, trials),
     )
+
+
+# ---------------------------------------------------------------------------------------
+# Tiny in-process agents for the fixture mini pack, used by CLI tests through the
+# ``python:tests.helpers:<factory>`` agent spec.
+# ---------------------------------------------------------------------------------------
+
+
+class MiniPackAgent:
+    """Handles the two minipack scenarios with keyword rules; ``wrap_quantity`` injects a bug."""
+
+    def __init__(self, backend: object, wrap_quantity: int = 2) -> None:
+        from indicorderbench.backend.state import OrderBackend
+
+        assert isinstance(backend, OrderBackend)
+        self.backend = backend
+        self.wrap_quantity = wrap_quantity
+
+    def handle(self, utterance: object) -> object:
+        from indicorderbench.adapters.protocol import AgentReply, CallerUtterance
+
+        assert isinstance(utterance, CallerUtterance)
+        text = (utterance.text or "").lower()
+        if "cancel" in text:
+            for order in self.backend.active_orders():
+                self.backend.cancel_order(order.order_id)
+            self.backend.clear_cart()
+            return AgentReply(text="Cancelled. Anything else?")
+        if "paneer" in text:
+            self.backend.add_item("paneer_wrap", self.wrap_quantity)
+            return AgentReply(text="Added paneer wraps. Anything else?")
+        if "lassi" in text:
+            self.backend.add_item("mango_lassi", 1)
+            self.backend.submit_order()
+            return AgentReply(text="Added a lassi. Anything else?")
+        if "all" in text or "place" in text:
+            if self.backend.get_cart():
+                self.backend.submit_order()
+                return AgentReply(text="Order placed, thank you!")
+            if self.backend.active_orders():
+                return AgentReply(text="Your order is already placed.")
+            return AgentReply(text="Nothing to place. Anything else?")
+        return AgentReply(text="Anything else?")
+
+
+def make_minipack_agent(backend: object, session: object) -> MiniPackAgent:
+    return MiniPackAgent(backend)
+
+
+def make_minipack_buggy_agent(backend: object, session: object) -> MiniPackAgent:
+    return MiniPackAgent(backend, wrap_quantity=1)

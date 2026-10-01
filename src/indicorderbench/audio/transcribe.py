@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 import httpx
 
@@ -17,8 +17,10 @@ from indicorderbench.audio.tts import (
 )
 
 
+@runtime_checkable
 class Transcriber(Protocol):
-    # Defined locally; the controller unifies this with agents/rule_based.py after merge.
+    """Turns caller audio into text. The reference agent and the audio providers share it."""
+
     def transcribe(self, audio: bytes, language: str) -> str: ...
 
 

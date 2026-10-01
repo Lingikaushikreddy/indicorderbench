@@ -51,6 +51,41 @@ class TTSProvider(Protocol):
     def synthesize(self, text: str, language: str, voice: str) -> bytes: ...
 
 
+class PlaceholderTTS:
+    """Offline provider for pipeline tests: a short, near-silent clip keyed to the text.
+
+    Every text gets distinct bytes (a deterministic low-amplitude pattern seeded by the
+    text), so manifest hashes stay unique and the OracleTranscriber can map a clip back to
+    its text. It makes ``--modality audio`` runnable without any API key; results produced
+    with it must say so.
+    """
+
+    name = "silence"
+    model = "placeholder"
+
+    def __init__(self, seconds: float = 0.5, sample_rate: int = 16000) -> None:
+        self.seconds = seconds
+        self.sample_rate = sample_rate
+
+    def synthesize(self, text: str, language: str, voice: str) -> bytes:
+        import hashlib
+        import io
+        import struct
+        import wave
+
+        digest = hashlib.sha256(f"{language}\x1f{voice}\x1f{text}".encode()).digest()
+        n = int(self.seconds * self.sample_rate)
+        # amplitude 1/32768: inaudible, but unique per text
+        samples = [(digest[i % len(digest)] % 3) - 1 for i in range(n)]
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(self.sample_rate)
+            w.writeframes(struct.pack(f"<{n}h", *samples))
+        return buf.getvalue()
+
+
 class SarvamTTS:
     name = "sarvam"
 
