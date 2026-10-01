@@ -51,7 +51,7 @@ def _phrase_re(phrases: list[str]) -> re.Pattern[str]:
 
 def _build_connector_re() -> re.Pattern[str]:
     """Split on connectors, except where a connector starts a lexicon phrase ("aur kuch
-    nahi") or forms the "ek aur" construction ("ek aur lassi" = one more lassi)."""
+    nahi"). The "ek aur X" construction (one more X) is re-joined by :func:`split_clauses`."""
     phrases = (
         lexicon.CLOSING_MARKERS
         + lexicon.CANCEL_ORDER_MARKERS
@@ -65,8 +65,6 @@ def _build_connector_re() -> re.Pattern[str]:
     for c in sorted(lexicon.CONNECTORS, key=len, reverse=True):
         tails = [p[len(c) + 1 :] for p in protected if p.startswith(c + " ")]
         alt = re.escape(c)
-        if c == "aur":
-            alt = r"(?<!\bek )" + alt
         if tails:
             alt += rf"(?! (?:{'|'.join(re.escape(t) for t in tails)})\b)"
         alts.append(alt)
@@ -95,6 +93,8 @@ _QUANTITY_PHRASE_RES = [
     (re.compile(rf"\b{re.escape(p)}\b"), n) for p, n in lexicon.QUANTITY_PHRASES.items()
 ]
 _DO_VERB_STEMS = frozenset(lexicon.DO_VERB_STEMS)
+_REHNE_RE = re.compile(r"\brehne do\b")
+_IN_RE = _phrase_re(lexicon.IN_MARKERS)
 _ARTICLES = frozenset({"a", "an"})
 
 
@@ -105,10 +105,15 @@ def split_clauses(text: str) -> list[str]:
         norm = normalise_text(piece)
         if not norm:
             continue
-        for frag in _CONNECTOR_RE.split(norm):
-            frag = frag.strip()
-            if frag:
-                out.append(frag)
+        frags = [f for f in (x.strip() for x in _CONNECTOR_RE.split(norm)) if f]
+        i = 0
+        while i < len(frags):
+            if frags[i] == "ek" and i + 1 < len(frags):
+                out.append(f"ek {frags[i + 1]}")  # "ek aur lassi" = one more lassi
+                i += 2
+            else:
+                out.append(frags[i])
+                i += 1
     return out
 
 
@@ -202,6 +207,36 @@ def _only_fillers(masked: str, language: str) -> bool:
     return all(tok in table for tok in rest.split())
 
 
+def _refused_options(masked: str, menu: Menu) -> tuple[list[str], list[str]]:
+    """Options implied by a refusal that names a group's subject ("onion", "pyaaz", "sugar")
+    or an extra ("cheese"): (options to set, options to drop)."""
+    tokens = set(masked.split())
+    to_set: list[str] = []
+    to_drop: list[str] = []
+    for gid, words in lexicon.GROUP_SUBJECTS.items():
+        if not tokens & set(words):
+            continue
+        try:
+            group = menu.group(gid)
+        except KeyError:
+            continue
+        negative = next(
+            (o.id for o in group.options if o.id.startswith(lexicon.NEGATIVE_OPTION_PREFIX)), None
+        )
+        chosen = negative or group.default
+        if chosen is not None and chosen not in to_set:
+            to_set.append(chosen)
+    for word, option in lexicon.EXTRA_SUBJECTS.items():
+        if word in tokens and menu.has_option(option) and option not in to_drop:
+            to_drop.append(option)
+    return to_set, to_drop
+
+
+def _only_rehne_do(masked: str) -> bool:
+    """True when "rehne do" is the only removal marker in the clause."""
+    return not _REMOVE_RE.search(_REHNE_RE.sub(" ", masked))
+
+
 def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> Clause | None:
     """Classify one fragment. Returns None for a dropped (bare) fragment."""
     if _CANCEL_ORDER_RE.search(fragment):
@@ -222,9 +257,17 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
     is_correction = carried or bool(_CORRECTION_RE.search(masked))
     is_remove = bool(_REMOVE_RE.search(masked))
     negated: list[str] = []
-    if is_remove and item_id is None and options:
-        # "teekha nahi chahiye", "remove the extra cheese": drop those options from the last line
-        negated, options, is_remove, is_correction = options, [], False, True
+    if is_remove:
+        to_set, to_drop = _refused_options(masked, menu)
+        if options or to_set or to_drop:
+            # "teekha nahi chahiye", "pyaaz wala nahi chahiye", "remove the extra cheese":
+            # a refusal of modifiers, applied to a line, never a removal of the line
+            negated, options = options + to_drop, to_set
+            is_remove, is_correction = False, True
+        elif quantity is not None and _only_rehne_do(masked):
+            is_remove, is_correction = False, True  # "ek hi rehne do" = keep just one
+    elif item_id is not None and options and quantity is None and _IN_RE.search(masked):
+        is_correction = True  # "paneer wrap mein pyaaz nahi chahiye" edits the existing wrap
     if is_remove:
         intent = Intent.REMOVE
     elif is_correction:

@@ -456,3 +456,78 @@ def test_rehne_do_is_a_removal():
     assert "rehne do" in lexicon.REMOVE_MARKERS and "rehne do" not in lexicon.CORRECTION_MARKERS
     assert brief(parse("chai rehne do", "hi-en")) == [(Intent.REMOVE, "masala_chai", None, [])]
     assert brief(parse("rehne do", "hi-en")) == [(Intent.REMOVE, None, None, [])]
+
+
+# -- review round 2 ----------------------------------------------------------------
+
+
+def test_group_subject_negation_is_a_modifier_correction():
+    for text, lang in [
+        ("Pyaaz wala nahi chahiye", "hi-en"),
+        ("I don't want onions", "en-IN"),
+        ("Remove the onion", "en-IN"),
+        ("Onion mat do", "hi-en"),
+        ("Pyaaz mat do", "hi-en"),
+    ]:
+        assert brief(parse(text, lang)) == [(Intent.CORRECT, None, None, ["no_onion"])], text
+    assert brief(parse("I don't want sugar")) == [(Intent.CORRECT, None, None, ["no_sugar"])]
+    assert brief(parse("Spice nahi chahiye", "hi-en")) == [(Intent.CORRECT, None, None, ["medium"])]
+    (c,) = parse("Cheese nahi chahiye", "hi-en")
+    assert (c.intent, c.item_id, c.modifiers, c.negated) == (
+        Intent.CORRECT,
+        None,
+        [],
+        ["extra_cheese"],
+    )
+    (c,) = parse("I don't want the cheese")
+    assert (c.intent, c.negated) == (Intent.CORRECT, ["extra_cheese"])
+    # a plain line removal is still a removal
+    assert brief(parse("Lassi nahi chahiye", "hi-en")) == [(Intent.REMOVE, "mango_lassi", None, [])]
+
+
+def test_named_item_modifier_negation_targets_that_item():
+    (c,) = parse("Paneer wrap mein teekha nahi chahiye", "hi-en")
+    assert (c.intent, c.item_id, c.modifiers, c.negated) == (
+        Intent.CORRECT,
+        "paneer_wrap",
+        [],
+        ["spicy"],
+    )
+    assert brief(parse("Paneer wrap mein pyaaz nahi chahiye", "hi-en")) == [
+        (Intent.CORRECT, "paneer_wrap", None, ["no_onion"])
+    ]
+    assert brief(parse("No onion in the paneer wrap")) == [
+        (Intent.CORRECT, "paneer_wrap", None, ["no_onion"])
+    ]
+    assert brief(parse("Ek paneer wrap pyaaz nahi", "hi-en")) == [
+        (Intent.ADD, "paneer_wrap", 1, ["no_onion"])
+    ]
+
+
+def test_rehne_do_with_a_quantity_is_a_quantity_correction():
+    assert brief(parse("ek hi rehne do", "hi-en")) == [(Intent.CORRECT, None, 1, [])]
+    assert brief(parse("Nahi nahi, ek hi rehne do.", "hi-en")) == [(Intent.CORRECT, None, 1, [])]
+    assert brief(parse("sirf ek rehne do", "hi-en")) == [(Intent.CORRECT, None, 1, [])]
+    assert brief(parse("do hi rehne do", "hi-en")) == [(Intent.CORRECT, None, 2, [])]
+    assert brief(parse("chai rehne do", "hi-en")) == [(Intent.REMOVE, "masala_chai", None, [])]
+    assert brief(parse("rehne do", "hi-en")) == [(Intent.REMOVE, None, None, [])]
+
+
+def test_ek_aur_protection_only_when_ek_starts_the_fragment():
+    assert brief(parse("Chai ek aur samosa do", "hi-en")) == [
+        (Intent.ADD, "masala_chai", 1, []),
+        (Intent.ADD, "samosa", None, []),
+    ]
+    assert brief(parse("Lassi ek aur samosa do", "hi-en")) == [
+        (Intent.ADD, "mango_lassi", 1, []),
+        (Intent.ADD, "samosa", None, []),
+    ]
+    assert brief(parse("Mango lassi ek aur do samosa", "hi-en")) == [
+        (Intent.ADD, "mango_lassi", 1, []),
+        (Intent.ADD, "samosa", 2, []),
+    ]
+    assert brief(parse("ek aur lassi", "hi-en")) == [(Intent.ADD, "mango_lassi", 1, [])]
+    assert brief(parse("Do samosa aur ek aur lassi", "hi-en")) == [
+        (Intent.ADD, "samosa", 2, []),
+        (Intent.ADD, "mango_lassi", 1, []),
+    ]

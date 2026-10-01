@@ -48,7 +48,31 @@ NUMBER_WORDS: dict[str, dict[str, int]] = {
 }
 
 # Phrases that always mean a quantity of one.
-QUANTITY_PHRASES: dict[str, int] = {"ek hi": 1, "one only": 1, "only one": 1, "sirf ek": 1}
+QUANTITY_PHRASES: dict[str, int] = {
+    "ek hi": 1,
+    "one only": 1,
+    "only one": 1,
+    "sirf ek": 1,
+    "just one": 1,
+    "do hi": 2,
+    "sirf do": 2,
+}
+
+# Words that name a modifier group's subject, used when a caller refuses it without naming
+# an option ("pyaaz wala nahi chahiye", "I don't want onions"). Keyed by group id; only
+# groups the menu actually has are used. A refusal picks the group's "no_" option when it
+# has one, else the group default.
+GROUP_SUBJECTS: dict[str, list[str]] = {
+    "onion": ["onion", "onions", "pyaaz", "pyaz", "pyaj", "kanda"],
+    "spice": ["spice", "spicy", "spiciness", "teekha", "teekhapan", "mirchi", "mirch"],
+    "sugar": ["sugar", "cheeni", "chini", "shakkar", "meetha"],
+}
+# Extras refused by name ("cheese nahi chahiye"); the option is dropped from the line.
+EXTRA_SUBJECTS: dict[str, str] = {"cheese": "extra_cheese", "paneer": "extra_paneer"}
+NEGATIVE_OPTION_PREFIX = "no_"
+
+# "X mein Y nahi chahiye" / "no onion in the X": a modifier correction on an existing line.
+IN_MARKERS: list[str] = ["mein", "in the", "on the", "in my", "on my", "ke andar", "wale mein"]
 
 # In Hinglish, "do" right after one of these verb stems is the verb "give/do" ("de do",
 # "kar do"), never the number two.

@@ -60,6 +60,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nothing_to_remove": "there is nothing to remove.",
         "removed_mods": "Removed {mods} from {name}.",
         "not_applicable": "{mods} does not apply to {name}.",
+        "already_without": "{name} has no {mods}.",
     },
     "hi-en": {
         "added": "{qty} {name}{mods} add kar diya.",
@@ -81,6 +82,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nothing_to_remove": "hataane ke liye kuch nahi hai.",
         "removed_mods": "{name} se {mods} hata diya.",
         "not_applicable": "{mods} {name} pe lagu nahi hota.",
+        "already_without": "{name} mein {mods} pehle se nahi hai.",
     },
 }
 
@@ -205,7 +207,17 @@ class RuleBasedAgent:
         named = [ln for ln in self._cart if ln.item_id == c.item_id] if c.item_id else []
         if named:
             line = named[-1]  # "change the chai to three" targets the chai line
-        elif c.item_id is not None:
+        elif c.item_id is None:
+            groups = self._groups_of(c.modifiers + c.negated)
+            if groups:
+                # "teekha nahi chahiye" edits the most recent line that has a spice level
+                with_group = [ln for ln in self._cart if groups & self._line_groups(ln)]
+                if not with_group:
+                    names = self._mod_names(c.modifiers + c.negated)
+                    msg = self._m("not_applicable", mods=names, name=self._name(line.item_id))
+                    return msg, ACTION
+                line = with_group[-1]
+        else:
             qty = c.quantity or line.quantity
             kept, dropped = self._applicable(c.item_id, c.modifiers)
             mods = self._merge(c.item_id, line.modifiers, kept, c.negated)
@@ -220,9 +232,19 @@ class RuleBasedAgent:
             return self._with_dropped(msg, name, dropped), ACTION
         name = self._name(line.item_id)
         kept, dropped = self._applicable(line.item_id, c.modifiers)
+        neg_ok, neg_dropped = self._applicable(line.item_id, c.negated)
+        neg_present = [m for m in neg_ok if m in line.modifiers]
+        dropped += neg_dropped
+        if c.quantity is None and not kept and not neg_present:
+            # nothing changes on this line: say why and make no backend call
+            if dropped:
+                return self._m("not_applicable", mods=self._mod_names(dropped), name=name), ACTION
+            if neg_ok:
+                return self._m("already_without", mods=self._mod_names(neg_ok), name=name), ACTION
+            return self._m("swapped", qty=line.quantity, name=name, mods=""), ACTION
         merged = (
-            self._merge(line.item_id, line.modifiers, kept, c.negated)
-            if kept or c.negated
+            self._merge(line.item_id, line.modifiers, kept, neg_present)
+            if kept or neg_present
             else None
         )
         if not skip and line.backend_id is not None:
@@ -237,10 +259,8 @@ class RuleBasedAgent:
             msg = self._m("qty", name=name, qty=c.quantity)
         elif kept:
             msg = self._m("mods", name=name, mods=self._mod_names(kept))
-        elif c.negated:
-            msg = self._m("removed_mods", name=name, mods=self._mod_names(c.negated))
         else:
-            msg = self._m("swapped", qty=line.quantity, name=name, mods="")
+            msg = self._m("removed_mods", name=name, mods=self._mod_names(neg_present))
         return self._with_dropped(msg, name, dropped), ACTION
 
     def _remove(self, c: Clause) -> tuple[str, str]:
@@ -353,6 +373,13 @@ class RuleBasedAgent:
             if m not in out:
                 out.append(m)
         return out
+
+    def _groups_of(self, options: Iterable[str]) -> set[str]:
+        menu = self.backend.menu
+        return {menu.option_group(o).id for o in options if menu.has_option(o)}
+
+    def _line_groups(self, line: _Line) -> set[str]:
+        return {g.id for g in self.backend.menu.groups_for(line.item_id)}
 
     def _with_dropped(self, msg: str, name: str, dropped: list[str]) -> str:
         if not dropped:

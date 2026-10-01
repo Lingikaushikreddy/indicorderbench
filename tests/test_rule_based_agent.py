@@ -399,3 +399,80 @@ def test_rehne_do_removes_the_named_line():
     replies = drive(a, ["Ek chai aur do samosa.", "Chai rehne do."], "hi-en")
     assert replies[1] == "Masala Chai hata diya. Aur kuch?"
     assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [("samosa", 2)]
+
+
+# -- review round 2 ----------------------------------------------------------------
+
+
+def test_group_subject_negation_sets_no_onion_on_the_wrap():
+    cases = [
+        ("Ek paneer wrap aur ek chai.", "Pyaaz wala nahi chahiye.", "hi-en"),
+        ("One paneer wrap and one chai.", "I don't want onions.", "en-IN"),
+        ("Ek paneer wrap aur ek chai.", "Onion mat do.", "hi-en"),
+    ]
+    for first, second, lang in cases:
+        a = agent(language=lang)
+        drive(a, [first, second], lang)
+        cart = a.backend.snapshot().cart
+        assert [(c.item_id, set(c.modifiers)) for c in cart] == [
+            ("paneer_wrap", {"no_onion"}),
+            ("masala_chai", set()),
+        ], second
+
+
+def test_named_item_negation_corrects_the_existing_line():
+    a = agent(language="hi-en")
+    replies = drive(
+        a,
+        ["Ek paneer wrap zyada teekha aur ek chai.", "Paneer wrap mein teekha nahi chahiye."],
+        "hi-en",
+    )
+    assert replies[1] == "Paneer Wrap se Spicy hata diya. Aur kuch?"
+    assert [(c.item_id, set(c.modifiers)) for c in a.backend.snapshot().cart] == [
+        ("paneer_wrap", set()),
+        ("masala_chai", set()),
+    ]
+    b = agent(language="hi-en")
+    replies = drive(b, ["Ek paneer wrap.", "Paneer wrap mein pyaaz nahi chahiye."], "hi-en")
+    assert replies[1] == "Paneer Wrap No onion kar diya. Aur kuch?"
+    assert [(c.item_id, c.quantity, set(c.modifiers)) for c in b.backend.snapshot().cart] == [
+        ("paneer_wrap", 1, {"no_onion"})
+    ]
+
+
+def test_rehne_do_with_a_quantity_keeps_that_many():
+    a = agent(language="hi-en")
+    replies = drive(a, ["Teen samosa.", "Nahi nahi, ek hi rehne do."], "hi-en")
+    assert replies[1] == "Samosa 1 kar diya. Aur kuch?"
+    assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [("samosa", 1)]
+    b = agent(language="hi-en")
+    drive(b, ["Ek chai aur do samosa.", "Chai rehne do."], "hi-en")
+    assert [(c.item_id, c.quantity) for c in b.backend.snapshot().cart] == [("samosa", 2)]
+
+
+def test_negation_targets_the_most_recent_line_with_that_group():
+    a = agent(language="hi-en")
+    replies = drive(
+        a, ["Ek chicken wrap zyada teekha aur ek chai.", "Teekha nahi chahiye."], "hi-en"
+    )
+    assert replies[1] == "Chicken Wrap se Spicy hata diya. Aur kuch?"
+    assert [(c.item_id, set(c.modifiers)) for c in a.backend.snapshot().cart] == [
+        ("chicken_wrap", set()),
+        ("masala_chai", set()),
+    ]
+    b = agent()
+    replies = drive(b, ["One chai.", "I don't want onions."])
+    assert replies[1] == "No onion does not apply to Masala Chai. Anything else?"
+    assert [t.name for t in b.backend.snapshot().trace] == ["add_item"]
+    c = agent()
+    replies = drive(c, ["One paneer wrap and one chai.", "Teekha nahi chahiye."])
+    assert replies[1] == "Paneer Wrap has no Spicy. Anything else?"
+    assert [t.name for t in c.backend.snapshot().trace] == ["add_item", "add_item"]
+
+
+def test_inapplicable_only_correction_makes_no_backend_call():
+    a = agent()
+    replies = drive(a, ["One chai.", "Make it spicy."])
+    assert replies[1] == "Spicy does not apply to Masala Chai. Anything else?"
+    assert [t.name for t in a.backend.snapshot().trace] == ["add_item"]
+    assert [set(c.modifiers) for c in a.backend.snapshot().cart] == [set()]
