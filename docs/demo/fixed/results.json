@@ -1,0 +1,1698 @@
+{
+  "schema_version": 1,
+  "run": {
+    "started_at": "2026-10-01T18:23:47.202910Z",
+    "finished_at": "2026-10-01T18:23:47.218118Z",
+    "trials": 1,
+    "modality": "text",
+    "seed": null,
+    "host": "Kaushiks-MacBook-Pro.local",
+    "benchmark_version": "0.1.0",
+    "python": "3.13.4",
+    "max_turns": 20,
+    "timeout_turn_s": 30.0,
+    "timeout_trial_s": 300.0
+  },
+  "pack": {
+    "id": "starter",
+    "version": "0.1.0",
+    "content_hash": "d716b40578c5cfe6",
+    "path": "/Users/kaushikreddy/Desktop/Projects/indicorderbench/packs/starter"
+  },
+  "agent": {
+    "label": "builtin:correct",
+    "spec": "builtin:correct"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "en_cancellation_01",
+      "title": "Cancel the order after it is placed",
+      "language": "en-IN",
+      "category": "cancellation",
+      "tags": [
+        "smoke",
+        "cancel-after-submit"
+      ],
+      "trials": [
+        {
+          "scenario_id": "en_cancellation_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "no_order",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "0",
+                "actual": "0",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state no_order"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "One mango lassi, that's all.",
+              "audio_path": null,
+              "t_ms": 0.1545000122860074,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "Added 1 Mango Lassi. Your order: 1 Mango Lassi. Order placed, thank you!",
+              "audio_path": null,
+              "t_ms": 0.7965420372784138,
+              "latency_ms": 0.6329999305307865,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Cancel the order, please.",
+              "audio_path": null,
+              "t_ms": 0.839084037579596,
+              "latency_ms": null,
+              "turn_id": "t2",
+              "source": "script"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Your order has been cancelled. Anything else?",
+              "audio_path": null,
+              "t_ms": 1.1864170664921403,
+              "latency_ms": 0.34483405761420727,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 4,
+              "speaker": "caller",
+              "text": "No, that's all. Bye.",
+              "audio_path": null,
+              "t_ms": 1.2196250027045608,
+              "latency_ms": null,
+              "turn_id": "t3",
+              "source": "script"
+            },
+            {
+              "index": 5,
+              "speaker": "agent",
+              "text": "Your order has been cancelled. Thank you, goodbye!",
+              "audio_path": null,
+              "t_ms": 1.9383750623092055,
+              "latency_ms": 0.7167089497670531,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "mango_lassi",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 0.772500061430037,
+                "status": "cancelled"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.7267500041052699,
+                "name": "add_item",
+                "args": {
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.7698340341448784,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "mango_lassi",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.772500061430037,
+                  "status": "submitted"
+                },
+                "error": null
+              },
+              {
+                "seq": 3,
+                "t_ms": 1.1000840459018946,
+                "name": "cancel_order",
+                "args": {
+                  "order_id": "o1"
+                },
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "mango_lassi",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.772500061430037,
+                  "status": "cancelled"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.202917Z",
+          "duration_ms": 2.108750049956143,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "en_correction_01",
+      "title": "Two wraps corrected to one mid-sentence",
+      "language": "en-IN",
+      "category": "correction",
+      "tags": [
+        "smoke",
+        "mid-order-correction",
+        "quantity-correction"
+      ],
+      "trials": [
+        {
+          "scenario_id": "en_correction_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "one_wrap",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state one_wrap"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Two paneer wraps... actually, make it one.",
+              "audio_path": null,
+              "t_ms": 0.05741708446294069,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "Added 2 Paneer Wrap. Changed Paneer Wrap to 1. Anything else?",
+              "audio_path": null,
+              "t_ms": 0.828583026304841,
+              "latency_ms": 0.7690419442951679,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "That's all, thanks.",
+              "audio_path": null,
+              "t_ms": 0.853167031891644,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Your order: 1 Paneer Wrap. Order placed, thank you!",
+              "audio_path": null,
+              "t_ms": 1.3413330307230353,
+              "latency_ms": 0.4860410699620843,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.330625033006072,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.7897079922258854,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.8123749867081642,
+                "name": "update_line",
+                "args": {
+                  "line_id": "l1",
+                  "quantity": 1,
+                  "modifiers": null
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 3,
+                "t_ms": 1.328792073763907,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.330625033006072,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.205066Z",
+          "duration_ms": 1.388958073221147,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "en_duplicate_submission_01",
+      "title": "Closing phrased twice",
+      "language": "en-IN",
+      "category": "duplicate_submission",
+      "tags": [
+        "smoke",
+        "closing-twice"
+      ],
+      "trials": [
+        {
+          "scenario_id": "en_duplicate_submission_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "one_chai_once",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Masala Chai quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state one_chai_once"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "One masala chai, that's all.",
+              "audio_path": null,
+              "t_ms": 0.10545901022851467,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "Added 1 Masala Chai. Your order: 1 Masala Chai. Order placed, thank you!",
+              "audio_path": null,
+              "t_ms": 0.7812919793650508,
+              "latency_ms": 0.6680000806227326,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Yes, that's it, thanks.",
+              "audio_path": null,
+              "t_ms": 0.8292919956147671,
+              "latency_ms": null,
+              "turn_id": "t2",
+              "source": "script"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Your order is already placed. Thank you!",
+              "audio_path": null,
+              "t_ms": 1.607749960385263,
+              "latency_ms": 0.775999971665442,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "masala_chai",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 0.7680000271648169,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.7445840165019035,
+                "name": "add_item",
+                "args": {
+                  "item_id": "masala_chai",
+                  "quantity": 1,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "masala_chai",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.7661669515073299,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "masala_chai",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.7680000271648169,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.206543Z",
+          "duration_ms": 1.674375031143427,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "en_modifier_01",
+      "title": "One paneer wrap without onion",
+      "language": "en-IN",
+      "category": "modifier",
+      "tags": [
+        "smoke",
+        "exclusion",
+        "single-item"
+      ],
+      "trials": [
+        {
+          "scenario_id": "en_modifier_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "wrap_no_onion",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap · Onion",
+                "expected": "No onion",
+                "actual": "No onion",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state wrap_no_onion"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "One paneer wrap with no onion, please.",
+              "audio_path": null,
+              "t_ms": 0.09204098023474216,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "Added 1 Paneer Wrap, No onion. Anything else?",
+              "audio_path": null,
+              "t_ms": 0.6737500661984086,
+              "latency_ms": 0.5782919470220804,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "That's all, thanks.",
+              "audio_path": null,
+              "t_ms": 0.7024999940767884,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Your order: 1 Paneer Wrap, No onion. Order placed, thank you!",
+              "audio_path": null,
+              "t_ms": 1.3423750642687082,
+              "latency_ms": 0.6374589866027236,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 1,
+                    "modifiers": [
+                      "no_onion"
+                    ],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.2792079942300916,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.6427500629797578,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [
+                    "no_onion"
+                  ]
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [
+                    "no_onion"
+                  ],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 1.2766249710693955,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 1,
+                      "modifiers": [
+                        "no_onion"
+                      ],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.2792079942300916,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.208297Z",
+          "duration_ms": 1.4041250105947256,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "en_quantity_01",
+      "title": "Two paneer wraps",
+      "language": "en-IN",
+      "category": "quantity",
+      "tags": [
+        "smoke",
+        "number-words",
+        "single-item"
+      ],
+      "trials": [
+        {
+          "scenario_id": "en_quantity_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "two_wraps",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "2",
+                "actual": "2",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state two_wraps"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Hi, two paneer wraps, please.",
+              "audio_path": null,
+              "t_ms": 0.06716698408126831,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "Added 2 Paneer Wrap. Anything else?",
+              "audio_path": null,
+              "t_ms": 0.8683749474585056,
+              "latency_ms": 0.7982079405337572,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "That's all, thanks.",
+              "audio_path": null,
+              "t_ms": 0.9007919579744339,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Your order: 2 Paneer Wrap. Order placed, thank you!",
+              "audio_path": null,
+              "t_ms": 1.411166973412037,
+              "latency_ms": 0.5079170223325491,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 2,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.397583051584661,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.8393330499529839,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 1.3949170242995024,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 2,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.397583051584661,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.209788Z",
+          "duration_ms": 1.4589170459657907,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "hien_cancellation_01",
+      "title": "Order place hone ke baad cancel",
+      "language": "hi-en",
+      "category": "cancellation",
+      "tags": [
+        "smoke",
+        "cancel-after-submit"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_cancellation_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "no_order",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "0",
+                "actual": "0",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state no_order"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Ek mango lassi, bas itna hi.",
+              "audio_path": null,
+              "t_ms": 0.061707920394837856,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "1 Mango Lassi add kar diya. Aapka order: 1 Mango Lassi. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 0.5837079370394349,
+              "latency_ms": 0.5197079153731465,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Order cancel kar do.",
+              "audio_path": null,
+              "t_ms": 0.6211670115590096,
+              "latency_ms": null,
+              "turn_id": "t2",
+              "source": "script"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order cancel kar diya. Aur kuch?",
+              "audio_path": null,
+              "t_ms": 0.6990419933572412,
+              "latency_ms": 0.07604097481817007,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 4,
+              "speaker": "caller",
+              "text": "Nahi, bas. Bye.",
+              "audio_path": null,
+              "t_ms": 0.7279579294845462,
+              "latency_ms": null,
+              "turn_id": "t3",
+              "source": "script"
+            },
+            {
+              "index": 5,
+              "speaker": "agent",
+              "text": "Aapka order cancel ho gaya hai. Shukriya, namaste!",
+              "audio_path": null,
+              "t_ms": 1.4406669652089477,
+              "latency_ms": 0.7109580328688025,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "mango_lassi",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 0.5741249769926071,
+                "status": "cancelled"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.5584579193964601,
+                "name": "add_item",
+                "args": {
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.5726249655708671,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "mango_lassi",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.5741249769926071,
+                  "status": "submitted"
+                },
+                "error": null
+              },
+              {
+                "seq": 3,
+                "t_ms": 0.6360419793054461,
+                "name": "cancel_order",
+                "args": {
+                  "order_id": "o1"
+                },
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "mango_lassi",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.5741249769926071,
+                  "status": "cancelled"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.211311Z",
+          "duration_ms": 1.569791929796338,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "hien_correction_01",
+      "title": "Do wrap se ek wrap mid-sentence",
+      "language": "hi-en",
+      "category": "correction",
+      "tags": [
+        "smoke",
+        "mid-order-correction",
+        "quantity-correction"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_correction_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "one_wrap",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state one_wrap"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Do paneer wrap... nahi nahi, ek hi karo.",
+              "audio_path": null,
+              "t_ms": 0.051958952099084854,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "2 Paneer Wrap add kar diya. Paneer Wrap 1 kar diya. Aur kuch?",
+              "audio_path": null,
+              "t_ms": 0.8347920374944806,
+              "latency_ms": 0.7807919755578041,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Bas itna hi, thanks.",
+              "audio_path": null,
+              "t_ms": 0.8610839722678065,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order: 1 Paneer Wrap. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 1.3680419651791453,
+              "latency_ms": 0.5048749735578895,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.35720893740654,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.7931669242680073,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.8171669906005263,
+                "name": "update_line",
+                "args": {
+                  "line_id": "l1",
+                  "quantity": 1,
+                  "modifiers": null
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 3,
+                "t_ms": 1.3549169525504112,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.35720893740654,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.212917Z",
+          "duration_ms": 1.415667007677257,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "hien_duplicate_submission_01",
+      "title": "Bas itna hi do baar",
+      "language": "hi-en",
+      "category": "duplicate_submission",
+      "tags": [
+        "smoke",
+        "closing-twice"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_duplicate_submission_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "one_chai_once",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Masala Chai quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state one_chai_once"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Ek masala chai, bas itna hi.",
+              "audio_path": null,
+              "t_ms": 0.049291993491351604,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "1 Masala Chai add kar diya. Aapka order: 1 Masala Chai. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 0.5730419652536511,
+              "latency_ms": 0.5217499565333128,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Haan, bas itna hi, thanks.",
+              "audio_path": null,
+              "t_ms": 0.6044169422239065,
+              "latency_ms": null,
+              "turn_id": "t2",
+              "source": "script"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order pehle se place ho gaya hai. Shukriya!",
+              "audio_path": null,
+              "t_ms": 1.3355829287320375,
+              "latency_ms": 0.7294589886441827,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "masala_chai",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 0.5641249008476734,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.5510830087587237,
+                "name": "add_item",
+                "args": {
+                  "item_id": "masala_chai",
+                  "quantity": 1,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "masala_chai",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 0.5628329236060381,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "masala_chai",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 0.5641249008476734,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.214386Z",
+          "duration_ms": 1.3769170036539435,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "hien_modifier_01",
+      "title": "Ek paneer wrap bina pyaaz",
+      "language": "hi-en",
+      "category": "modifier",
+      "tags": [
+        "smoke",
+        "exclusion",
+        "single-item"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_modifier_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "wrap_no_onion",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap · Onion",
+                "expected": "No onion",
+                "actual": "No onion",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state wrap_no_onion"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Ek paneer wrap dena, bina pyaaz.",
+              "audio_path": null,
+              "t_ms": 0.04512490704655647,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "1 Paneer Wrap, No onion add kar diya. Aur kuch?",
+              "audio_path": null,
+              "t_ms": 0.5794999888166785,
+              "latency_ms": 0.5325840320438147,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Bas itna hi, thanks.",
+              "audio_path": null,
+              "t_ms": 0.6024169269949198,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order: 1 Paneer Wrap, No onion. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 1.0920829372480512,
+              "latency_ms": 0.48804201651364565,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 1,
+                    "modifiers": [
+                      "no_onion"
+                    ],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.081207999959588,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.5575419636443257,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [
+                    "no_onion"
+                  ]
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 1,
+                  "modifiers": [
+                    "no_onion"
+                  ],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 1.0795419802889228,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 1,
+                      "modifiers": [
+                        "no_onion"
+                      ],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.081207999959588,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.215810Z",
+          "duration_ms": 1.131374971009791,
+          "agent_meta": {}
+        }
+      ]
+    },
+    {
+      "scenario_id": "hien_quantity_01",
+      "title": "Do paneer wrap",
+      "language": "hi-en",
+      "category": "quantity",
+      "tags": [
+        "smoke",
+        "number-words",
+        "single-item"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_quantity_01",
+          "trial": 1,
+          "outcome": "pass",
+          "check": {
+            "passed": true,
+            "best_end_state_id": "two_wraps",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "2",
+                "actual": "2",
+                "passed": true
+              }
+            ],
+            "summary": "matched end state two_wraps"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Haan ji, do paneer wrap dena.",
+              "audio_path": null,
+              "t_ms": 0.03695790655910969,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "2 Paneer Wrap add kar diya. Aur kuch?",
+              "audio_path": null,
+              "t_ms": 0.5429169395938516,
+              "latency_ms": 0.504292082041502,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Bas itna hi, thanks.",
+              "audio_path": null,
+              "t_ms": 0.5618749419227242,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order: 2 Paneer Wrap. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 1.050374936312437,
+              "latency_ms": 0.48683397471904755,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 2,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.0417079320177436,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 0.5299169570207596,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 1.040124916471541,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 2,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.0417079320177436,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.216989Z",
+          "duration_ms": 1.0888749966397882,
+          "agent_meta": {}
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "n_scenarios": 10,
+    "n_trials_total": 10,
+    "n_valid": 10,
+    "n_pass": 10,
+    "n_fail": 0,
+    "n_simulator_invalid": 0,
+    "n_infra_error": 0,
+    "n_max_turns": 0,
+    "pass_rate": 1.0,
+    "pass_k": {
+      "1": 1.0
+    },
+    "by_language": [
+      {
+        "key": "en-IN",
+        "n_trials": 5,
+        "n_pass": 5,
+        "pass_rate": 1.0,
+        "ci_low": 0.5655085052479191,
+        "ci_high": 1.0
+      },
+      {
+        "key": "hi-en",
+        "n_trials": 5,
+        "n_pass": 5,
+        "pass_rate": 1.0,
+        "ci_low": 0.5655085052479191,
+        "ci_high": 1.0
+      }
+    ],
+    "by_category": [
+      {
+        "key": "cancellation",
+        "n_trials": 2,
+        "n_pass": 2,
+        "pass_rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0
+      },
+      {
+        "key": "correction",
+        "n_trials": 2,
+        "n_pass": 2,
+        "pass_rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0
+      },
+      {
+        "key": "duplicate_submission",
+        "n_trials": 2,
+        "n_pass": 2,
+        "pass_rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0
+      },
+      {
+        "key": "modifier",
+        "n_trials": 2,
+        "n_pass": 2,
+        "pass_rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0
+      },
+      {
+        "key": "quantity",
+        "n_trials": 2,
+        "n_pass": 2,
+        "pass_rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0
+      }
+    ],
+    "latency_p50_ms": 0.5554379895329475,
+    "latency_p95_ms": 0.780552375363186
+  }
+}

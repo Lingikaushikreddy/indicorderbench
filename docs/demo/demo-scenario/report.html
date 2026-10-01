@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IndicOrderBench · starter · builtin:buggy:ignore_corrections</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8; --surface: #ffffff; --soft: #eef0f3; --ink: #1b1f24; --muted: #5d6673; --line: #e0e3e8;
+  --accent: #3554d1; --agent: #eaeefc;
+  --pass: #17784a; --pass-bg: #e2f4ea; --fail: #b42318; --fail-bg: #fdeceb;
+  --invalid: #8a5800; --invalid-bg: #fcf1d8; --infra: #5a3fb8; --infra-bg: #ece8fb;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116; --surface: #161a21; --soft: #1e232c; --ink: #e5e8ec; --muted: #98a2ae; --line: #2b313b;
+    --accent: #8ea2ff; --agent: #1f2640;
+    --pass: #5fd29a; --pass-bg: #123222; --fail: #ff8b80; --fail-bg: #3b1714;
+    --invalid: #f0c36a; --invalid-bg: #33280e; --infra: #b9a7ff; --infra-bg: #261e47;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); padding: 26px 0 22px; }
+.brand { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 4px 0 16px; font-size: 26px; line-height: 1.25; }
+h1 .sep { color: var(--muted); font-weight: 400; }
+h2 { font-size: 18px; margin: 36px 0 12px; }
+h3 { font-size: 14px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+h4 { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 6px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px 24px; margin: 0; }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 26px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 10px; padding: 14px 16px; }
+.card.warn { border-top-color: var(--invalid); } .card.bad { border-top-color: var(--fail); } .card p { margin: 0; }
+.card .label { font-size: 13px; color: var(--muted); }
+.card .value { font-size: 28px; font-weight: 650; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.card .sub { font-size: 12px; color: var(--muted); }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--soft); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+.num { text-align: right; white-space: nowrap; }
+.ci { white-space: nowrap; }
+.bar { position: relative; height: 8px; min-width: 96px; margin-top: 6px; background: var(--soft); border-radius: 4px; }
+.bar .band { position: absolute; top: 0; bottom: 0; background: var(--accent); opacity: .3; border-radius: 4px; }
+.bar .dot { position: absolute; top: -2px; width: 4px; height: 12px; margin-left: -2px; background: var(--accent); border-radius: 2px; }
+.headline { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 8px; font-size: 16px; }
+.verdict { font-weight: 700; padding: 2px 12px; border-radius: 999px; }
+.verdict.bad { color: var(--fail); background: var(--fail-bg); } .verdict.ok { color: var(--pass); background: var(--pass-bg); }
+.muted { color: var(--muted); font-weight: 400; }
+.problems { margin: 8px 0 14px; padding-left: 20px; color: var(--invalid); font-size: 13px; }
+table.comparison tr.regressed td { background: var(--fail-bg); }
+table.comparison tr.regressed .delta, tr.regressed .status { color: var(--fail); font-weight: 700; }
+table.comparison tr.improved .delta, tr.improved .status { color: var(--pass); font-weight: 700; }
+tr.new .status, tr.removed .status, tr.unknown .status, tr.same .status { color: var(--muted); }
+tr.removed .sid { text-decoration: line-through; color: var(--muted); }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.toolbar button { font: inherit; font-size: 13px; padding: 4px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; cursor: pointer; }
+.toolbar button:hover { border-color: var(--accent); }
+details.scenario { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--pass); border-radius: 8px; margin: 8px 0; }
+details.scenario.fail { border-left-color: var(--fail); } details.scenario.invalid { border-left-color: var(--invalid); }
+details.scenario.infra { border-left-color: var(--infra); }
+summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 14px; cursor: pointer; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▸"; color: var(--muted); width: 10px; }
+details[open] > summary::before { content: "▾"; }
+.sid { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+.stitle { flex: 1 1 220px; }
+.meta { color: var(--muted); font-size: 13px; }
+.rate { font-weight: 650; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: inline-flex; gap: 4px; }
+.chip { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
+.chip-pass { color: var(--pass); background: var(--pass-bg); } .chip-fail { color: var(--fail); background: var(--fail-bg); }
+.chip-invalid { color: var(--invalid); background: var(--invalid-bg); } .chip-infra { color: var(--infra); background: var(--infra-bg); }
+.tag { font-family: var(--mono); font-size: 11px; }
+.scenario-body { border-top: 1px solid var(--line); padding: 2px 16px 16px; }
+.trial { padding-top: 14px; } .trial + .trial { border-top: 1px dashed var(--line); margin-top: 16px; }
+.note { font-size: 13px; margin: 6px 0; } .note.invalid { color: var(--invalid); }
+pre.error { font: 12px/1.45 var(--mono); background: var(--infra-bg); padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; }
+code { font: 12px var(--mono); background: var(--soft); padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+table.field-checks td.result { font-weight: 700; white-space: nowrap; }
+table.field-checks tr.pass td.result { color: var(--pass); }
+table.field-checks tr.fail td { background: var(--fail-bg); }
+table.field-checks tr.fail td.result, table.field-checks tr.fail td.actual { color: var(--fail); font-weight: 700; }
+ol.transcript { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+ol.transcript li { display: grid; gap: 3px; align-content: start; min-width: 0; }
+ol.transcript li.caller { grid-column: 1; } ol.transcript li.agent { grid-column: 2; }
+.who { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bubble { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
+li.caller .bubble { border-top-left-radius: 3px; } li.agent .bubble { background: var(--agent); border-top-right-radius: 3px; }
+.latency { font: 11px var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; }
+.empty { color: var(--muted); font-style: italic; }
+audio { height: 32px; width: 100%; max-width: 320px; }
+table.trace { font: 12px/1.4 var(--mono); }
+table.trace td { padding: 4px 10px; overflow-wrap: anywhere; } table.trace tr.err td { color: var(--fail); }
+footer { color: var(--muted); font-size: 12px; margin-top: 44px; padding: 20px 0 40px; border-top: 1px solid var(--line); }
+footer p { margin: 2px 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  ol.transcript { grid-template-columns: 1fr; }
+  ol.transcript li.caller, ol.transcript li.agent { grid-column: 1; }
+  .wrap { padding: 0 14px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">IndicOrderBench</div>
+    <h1>starter 0.1.0 <span class="sep">·</span> builtin:buggy:ignore_corrections</h1>
+    <dl class="facts">
+      <div><dt>Agent spec</dt><dd>builtin:buggy:ignore_corrections</dd></div>
+      <div><dt>Started</dt><dd>2026-10-01 18:23:47 UTC</dd></div>
+      <div><dt>Duration</dt><dd>0.0 s</dd></div>
+      <div><dt>Scenarios</dt><dd>1</dd></div>
+      <div><dt>Trials per scenario</dt><dd>1</dd></div>
+      <div><dt>Modality</dt><dd>text</dd></div>
+      <div><dt>Seed</dt><dd>—</dd></div>
+      <div><dt>Host</dt><dd>Kaushiks-MacBook-Pro.local</dd></div>
+    </dl>
+  </div>
+</header>
+<main class="wrap">
+  <section class="cards" id="summary" aria-label="Summary">
+    <article class="card neutral" id="card-pass-rate">
+      <p class="label">Pass rate</p>
+      <p class="value">0.0%</p>
+      <p class="sub">0 of 1 valid trials passed · mean over scenarios</p>
+    </article>
+    <article class="card neutral" id="card-pass-k">
+      <p class="label">pass<sup>1</sup></p>
+      <p class="value">0.0%</p>
+      <p class="sub">chance a single trial passes</p>
+    </article>
+    <article class="card neutral" id="card-invalid">
+      <p class="label">Simulator invalid</p>
+      <p class="value">0</p>
+      <p class="sub">caller script could not continue · excluded</p>
+    </article>
+    <article class="card neutral" id="card-infra">
+      <p class="label">Infra errors</p>
+      <p class="value">0</p>
+      <p class="sub">of 1 trials · excluded</p>
+    </article>
+    <article class="card neutral" id="card-latency">
+      <p class="label">Latency p50 / p95</p>
+      <p class="value">1 / 1</p>
+      <p class="sub">milliseconds per agent reply</p>
+    </article>
+  </section>
+
+  <section id="breakdown">
+    <h2>Pass rate by language and category</h2>
+    <div class="split">
+      <div class="panel">
+<table id="by-language">
+  <thead><tr><th>Language</th><th class="num" title="valid trials">Valid</th><th class="num">Passed</th><th class="num">Rate</th><th>95% CI (Wilson)</th></tr></thead>
+  <tbody>
+    <tr><td>hi-en</td><td class="num">1</td><td class="num">0</td><td class="num">0.0%</td>
+      <td class="ci">0.0% – 79.3%<div class="bar"><span class="band" style="left:0.0%;width:79.3%"></span><span class="dot" style="left:0.0%"></span></div></td></tr>
+  </tbody>
+</table>
+</div>
+
+      <div class="panel">
+<table id="by-category">
+  <thead><tr><th>Category</th><th class="num" title="valid trials">Valid</th><th class="num">Passed</th><th class="num">Rate</th><th>95% CI (Wilson)</th></tr></thead>
+  <tbody>
+    <tr><td>correction</td><td class="num">1</td><td class="num">0</td><td class="num">0.0%</td>
+      <td class="ci">0.0% – 79.3%<div class="bar"><span class="band" style="left:0.0%;width:79.3%"></span><span class="dot" style="left:0.0%"></span></div></td></tr>
+  </tbody>
+</table>
+</div>
+
+    </div>
+  </section>
+
+  <section id="scenarios">
+    <div class="toolbar">
+      <h2>Scenarios</h2>
+      <div><button type="button" data-open="1">Expand all</button> <button type="button" data-open="0">Collapse all</button></div>
+    </div>
+    <details id="scenario-hien_correction_05" class="scenario fail" open>
+      <summary>
+        <span class="sid">hien_correction_05</span>
+        <span class="stitle">Do wrap se ek, bina pyaaz, aur ek lassi (demo)</span>
+        <span class="meta">hi-en · correction · #demo · #mid-order-correction · #quantity-correction · #modifier · #multi-item</span>
+        <span class="rate" title="0/1 valid">0.0%</span>
+        <span class="chips"><span class="chip chip-fail">fail</span></span>
+      </summary>
+      <div class="scenario-body">
+        <div class="trial">
+          <h3>Trial 1 <span class="chip chip-fail">fail</span> <span class="muted">0.00 s</span></h3>
+          <p class="note">Check: 2 field(s) wrong vs single_order: Paneer Wrap quantity expected 1 got 2; Paneer Wrap · Onion expected No onion got With onion</p>
+          <h4>Order check</h4>
+          <div class="panel">
+          <table class="field-checks">
+            <thead><tr><th>Field</th><th>Expected</th><th>Actual</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr class="pass"><td>Submitted orders</td><td>1</td><td class="actual">1</td><td class="result">✓ pass</td></tr>
+              <tr class="fail"><td>Paneer Wrap quantity</td><td>1</td><td class="actual">2</td><td class="result">✗ fail</td></tr>
+              <tr class="fail"><td>Paneer Wrap · Onion</td><td>No onion</td><td class="actual">With onion</td><td class="result">✗ fail</td></tr>
+              <tr class="pass"><td>Mango Lassi quantity</td><td>1</td><td class="actual">1</td><td class="result">✓ pass</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="note muted">Orders at end of call: <code>o1 (submitted): 2× paneer_wrap, 1× mango_lassi</code></p>
+          <h4>Conversation</h4>
+          <ol class="transcript">
+            <li class="caller">
+              <div class="who">Caller <span class="tag">t1 · script</span></div>
+              <p class="bubble">Do paneer wrap... actually ek hi karo. Bina pyaaz. Aur ek mango lassi.</p>
+            </li>
+            <li class="agent">
+              <div class="who">Agent <span class="latency">1 ms</span></div>
+              <p class="bubble">2 Paneer Wrap add kar diya. Paneer Wrap 1 kar diya. Paneer Wrap No onion kar diya. 1 Mango Lassi add kar diya. Aur kuch?</p>
+            </li>
+            <li class="caller">
+              <div class="who">Caller <span class="tag">closing · closing</span></div>
+              <p class="bubble">Bas itna hi, thanks.</p>
+            </li>
+            <li class="agent">
+              <div class="who">Agent <span class="latency">1 ms</span></div>
+              <p class="bubble">Aapka order: 1 Paneer Wrap, No onion; 1 Mango Lassi. Order place ho gaya, shukriya!</p>
+            </li>
+          </ol>
+          <h4>Tool calls</h4>
+          <div class="panel">
+          <table class="trace">
+            <thead><tr><th class="num">#</th><th class="num">t</th><th>Tool</th><th>Arguments</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td class="num">0.00 s</td><td>add_item</td><td>{&#34;item_id&#34;: &#34;paneer_wrap&#34;, &#34;modifiers&#34;: [], &#34;quantity&#34;: 2}</td><td>{&#34;item_id&#34;: &#34;paneer_wrap&#34;, &#34;line_id&#34;: &#34;l1&#34;, &#34;modifiers&#34;: [], &#34;note&#34;: null, &#34;quantity&#34;: 2}</td></tr>
+              <tr><td class="num">2</td><td class="num">0.00 s</td><td>add_item</td><td>{&#34;item_id&#34;: &#34;mango_lassi&#34;, &#34;modifiers&#34;: [], &#34;quantity&#34;: 1}</td><td>{&#34;item_id&#34;: &#34;mango_lassi&#34;, &#34;line_id&#34;: &#34;l2&#34;, &#34;modifiers&#34;: [], &#34;note&#34;: null, &#34;quantity&#34;: 1}</td></tr>
+              <tr><td class="num">3</td><td class="num">0.00 s</td><td>submit_order</td><td>{}</td><td title="{&#34;lines&#34;: [{&#34;item_id&#34;: &#34;paneer_wrap&#34;, &#34;line_id&#34;: &#34;l1&#34;, &#34;modifiers&#34;: [], &#34;note&#34;: null, &#34;quantity&#34;: 2}, {&#34;item_id&#34;: &#34;mango_lassi&#34;, &#34;line_id&#34;: &#34;l2&#34;, &#34;modifiers&#34;: [], &#34;note&#34;: null, &#34;quantity&#34;: 1}], &#34;order_id&#34;: &#34;o1&#34;, &#34;status&#34;: &#34;submitted&#34;, &#34;submitted_at_ms&#34;: 1.8214579904451966}">{&#34;lines&#34;: [{&#34;item_id&#34;: &#34;paneer_wrap&#34;, &#34;line_id&#34;: &#34;l1&#34;, &#34;modifiers&#34;: [], &#34;note&#34;: null, &#34;quantity&#34;: 2}, {&#34;item_id&#34;: &#34;mango_lassi&#34;, &#34;line_id&#34;: &#34;l2&#34;, &#34;modifiers&#34;: …</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+</main>
+<footer id="footer">
+  <div class="wrap">
+    <p>IndicOrderBench 0.1.0</p>
+    <p>pack starter 0.1.0 · content hash d716b40578c5cfe6</p>
+    <p>run 2026-10-01T18:23:47+00:00 → 2026-10-01T18:23:47+00:00</p>
+    <p>Python 3.13.4 on Kaushiks-MacBook-Pro.local · max 20 turns, 30 s per turn, 300 s per trial</p>
+  </div>
+</footer>
+<script>
+document.querySelectorAll("button[data-open]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    document.querySelectorAll("#scenarios details").forEach(function (d) { d.open = button.dataset.open === "1"; });
+  });
+});
+</script>
+</body>
+</html>

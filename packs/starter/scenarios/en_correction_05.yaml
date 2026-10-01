@@ -17,7 +17,7 @@ caller:
       reply: {text: "One. Just one paneer wrap."}
       max_uses: 2
     - id: onion
-      match: ["onion"]
+      match: ["onion[^.!?]*\\?", "with or without"]
       reply: {text: "No onion, please."}
       max_uses: 1
 expected:

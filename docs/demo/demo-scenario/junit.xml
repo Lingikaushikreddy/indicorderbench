@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="indicorderbench" tests="1" failures="1" errors="0" skipped="0" time="0.002">
+  <testsuite name="indicorderbench:starter" timestamp="2026-10-01T18:23:47+00:00" hostname="Kaushiks-MacBook-Pro.local" tests="1" failures="1" errors="0" skipped="0" time="0.002">
+    <properties>
+      <property name="benchmark_version" value="0.1.0" />
+      <property name="pack_version" value="0.1.0" />
+      <property name="pack_hash" value="d716b40578c5cfe6" />
+      <property name="agent" value="builtin:buggy:ignore_corrections" />
+      <property name="agent_spec" value="builtin:buggy:ignore_corrections" />
+      <property name="trials" value="1" />
+      <property name="modality" value="text" />
+    </properties>
+    <testcase name="hien_correction_05" classname="hi-en.correction" time="0.002">
+      <failure message="1 of 1 valid trial failed: Paneer Wrap quantity: expected 1, actual 2; Paneer Wrap · Onion: expected No onion, actual With onion" type="WrongOrder">trial 1: Paneer Wrap quantity: expected 1, actual 2
+trial 1: Paneer Wrap · Onion: expected No onion, actual With onion</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Do paneer wrap... actually ek hi karo. Bina pyaaz. Aur ek mango lassi.
+[agent 1 ms] 2 Paneer Wrap add kar diya. Paneer Wrap 1 kar diya. Paneer Wrap No onion kar diya. 1 Mango Lassi add kar diya. Aur kuch?
+[caller closing] Bas itna hi, thanks.
+[agent 1 ms] Aapka order: 1 Paneer Wrap, No onion; 1 Mango Lassi. Order place ho gaya, shukriya!
+check: 2 field(s) wrong vs single_order: Paneer Wrap quantity expected 1 got 2; Paneer Wrap · Onion expected No onion got With onion</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

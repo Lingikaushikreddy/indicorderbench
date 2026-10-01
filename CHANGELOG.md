@@ -21,8 +21,11 @@ First release.
 - In-process and HTTP turn adapters; HTTP sandbox backend server.
 - Rule-based reference agent with switchable bugs (`ignore_corrections`, `drop_modifiers`,
   `double_submit`, `ignore_cancellation`, `quantity_default_one`).
-- Starter pack: 40 scenarios, 20 English and 20 Hinglish, across five failure categories.
+- Starter pack: 42 scenarios (21 English, 21 Hinglish) across five failure categories,
+  including two `demo`-tagged correction scenarios; bundled in the wheel.
 - JSON, JUnit and single-file HTML reports; baseline comparison with regression exit code.
 - Audio: WAV helpers, noise/gain/telephone perturbations, Sarvam bulbul TTS synthesis,
-  Sarvam saaras STT, oracle transcriber, clip manifest.
+  Sarvam saaras STT, oracle transcriber, clip manifest, and an offline placeholder TTS
+  (`--provider silence`) so audio-modality runs work without API keys.
+- `examples/http_agent_shim.py`: the reference agent behind the HTTP turn protocol.
 - `iob` CLI: validate, ls, run, report, compare, demo, synth, perturb, serve-backend.

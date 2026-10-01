@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="indicorderbench" tests="10" failures="0" errors="0" skipped="0" time="0.015">
+  <testsuite name="indicorderbench:starter" timestamp="2026-10-01T18:23:47+00:00" hostname="Kaushiks-MacBook-Pro.local" tests="10" failures="0" errors="0" skipped="0" time="0.015">
+    <properties>
+      <property name="benchmark_version" value="0.1.0" />
+      <property name="pack_version" value="0.1.0" />
+      <property name="pack_hash" value="d716b40578c5cfe6" />
+      <property name="agent" value="builtin:correct" />
+      <property name="agent_spec" value="builtin:correct" />
+      <property name="trials" value="1" />
+      <property name="modality" value="text" />
+    </properties>
+    <testcase name="en_cancellation_01" classname="en-IN.cancellation" time="0.002" />
+    <testcase name="en_correction_01" classname="en-IN.correction" time="0.001" />
+    <testcase name="en_duplicate_submission_01" classname="en-IN.duplicate_submission" time="0.002" />
+    <testcase name="en_modifier_01" classname="en-IN.modifier" time="0.001" />
+    <testcase name="en_quantity_01" classname="en-IN.quantity" time="0.001" />
+    <testcase name="hien_cancellation_01" classname="hi-en.cancellation" time="0.002" />
+    <testcase name="hien_correction_01" classname="hi-en.correction" time="0.001" />
+    <testcase name="hien_duplicate_submission_01" classname="hi-en.duplicate_submission" time="0.001" />
+    <testcase name="hien_modifier_01" classname="hi-en.modifier" time="0.001" />
+    <testcase name="hien_quantity_01" classname="hi-en.quantity" time="0.001" />
+  </testsuite>
+</testsuites>

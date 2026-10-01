@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "run": {
+    "started_at": "2026-10-01T18:23:47.222168Z",
+    "finished_at": "2026-10-01T18:23:47.224177Z",
+    "trials": 1,
+    "modality": "text",
+    "seed": null,
+    "host": "Kaushiks-MacBook-Pro.local",
+    "benchmark_version": "0.1.0",
+    "python": "3.13.4",
+    "max_turns": 20,
+    "timeout_turn_s": 30.0,
+    "timeout_trial_s": 300.0
+  },
+  "pack": {
+    "id": "starter",
+    "version": "0.1.0",
+    "content_hash": "d716b40578c5cfe6",
+    "path": "/Users/kaushikreddy/Desktop/Projects/indicorderbench/packs/starter"
+  },
+  "agent": {
+    "label": "builtin:buggy:ignore_corrections",
+    "spec": "builtin:buggy:ignore_corrections"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "hien_correction_05",
+      "title": "Do wrap se ek, bina pyaaz, aur ek lassi (demo)",
+      "language": "hi-en",
+      "category": "correction",
+      "tags": [
+        "demo",
+        "mid-order-correction",
+        "quantity-correction",
+        "modifier",
+        "multi-item"
+      ],
+      "trials": [
+        {
+          "scenario_id": "hien_correction_05",
+          "trial": 1,
+          "outcome": "fail",
+          "check": {
+            "passed": false,
+            "best_end_state_id": "single_order",
+            "field_checks": [
+              {
+                "field": "Submitted orders",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              },
+              {
+                "field": "Paneer Wrap quantity",
+                "expected": "1",
+                "actual": "2",
+                "passed": false
+              },
+              {
+                "field": "Paneer Wrap · Onion",
+                "expected": "No onion",
+                "actual": "With onion",
+                "passed": false
+              },
+              {
+                "field": "Mango Lassi quantity",
+                "expected": "1",
+                "actual": "1",
+                "passed": true
+              }
+            ],
+            "summary": "2 field(s) wrong vs single_order: Paneer Wrap quantity expected 1 got 2; Paneer Wrap · Onion expected No onion got With onion"
+          },
+          "transcript": [
+            {
+              "index": 0,
+              "speaker": "caller",
+              "text": "Do paneer wrap... actually ek hi karo. Bina pyaaz. Aur ek mango lassi.",
+              "audio_path": null,
+              "t_ms": 0.06812496576458216,
+              "latency_ms": null,
+              "turn_id": "t1",
+              "source": "script"
+            },
+            {
+              "index": 1,
+              "speaker": "agent",
+              "text": "2 Paneer Wrap add kar diya. Paneer Wrap 1 kar diya. Paneer Wrap No onion kar diya. 1 Mango Lassi add kar diya. Aur kuch?",
+              "audio_path": null,
+              "t_ms": 1.129291020333767,
+              "latency_ms": 1.0584580013528466,
+              "turn_id": null,
+              "source": null
+            },
+            {
+              "index": 2,
+              "speaker": "caller",
+              "text": "Bas itna hi, thanks.",
+              "audio_path": null,
+              "t_ms": 1.269000000320375,
+              "latency_ms": null,
+              "turn_id": "closing",
+              "source": "closing"
+            },
+            {
+              "index": 3,
+              "speaker": "agent",
+              "text": "Aapka order: 1 Paneer Wrap, No onion; 1 Mango Lassi. Order place ho gaya, shukriya!",
+              "audio_path": null,
+              "t_ms": 1.8453330267220736,
+              "latency_ms": 0.5741249769926071,
+              "turn_id": null,
+              "source": null
+            }
+          ],
+          "snapshot": {
+            "cart": [],
+            "orders": [
+              {
+                "order_id": "o1",
+                "lines": [
+                  {
+                    "line_id": "l1",
+                    "item_id": "paneer_wrap",
+                    "quantity": 2,
+                    "modifiers": [],
+                    "note": null
+                  },
+                  {
+                    "line_id": "l2",
+                    "item_id": "mango_lassi",
+                    "quantity": 1,
+                    "modifiers": [],
+                    "note": null
+                  }
+                ],
+                "submitted_at_ms": 1.8214579904451966,
+                "status": "submitted"
+              }
+            ],
+            "trace": [
+              {
+                "seq": 1,
+                "t_ms": 1.0737909469753504,
+                "name": "add_item",
+                "args": {
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l1",
+                  "item_id": "paneer_wrap",
+                  "quantity": 2,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 2,
+                "t_ms": 1.1136250104755163,
+                "name": "add_item",
+                "args": {
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": []
+                },
+                "result": {
+                  "line_id": "l2",
+                  "item_id": "mango_lassi",
+                  "quantity": 1,
+                  "modifiers": [],
+                  "note": null
+                },
+                "error": null
+              },
+              {
+                "seq": 3,
+                "t_ms": 1.8122909823432565,
+                "name": "submit_order",
+                "args": {},
+                "result": {
+                  "order_id": "o1",
+                  "lines": [
+                    {
+                      "line_id": "l1",
+                      "item_id": "paneer_wrap",
+                      "quantity": 2,
+                      "modifiers": [],
+                      "note": null
+                    },
+                    {
+                      "line_id": "l2",
+                      "item_id": "mango_lassi",
+                      "quantity": 1,
+                      "modifiers": [],
+                      "note": null
+                    }
+                  ],
+                  "submitted_at_ms": 1.8214579904451966,
+                  "status": "submitted"
+                },
+                "error": null
+              }
+            ]
+          },
+          "caller_valid": true,
+          "caller_invalid_reason": null,
+          "error": null,
+          "max_turns_hit": false,
+          "started_at": "2026-10-01T18:23:47.222171Z",
+          "duration_ms": 1.9219160312786698,
+          "agent_meta": {}
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "n_scenarios": 1,
+    "n_trials_total": 1,
+    "n_valid": 1,
+    "n_pass": 0,
+    "n_fail": 1,
+    "n_simulator_invalid": 0,
+    "n_infra_error": 0,
+    "n_max_turns": 0,
+    "pass_rate": 0.0,
+    "pass_k": {
+      "1": 0.0
+    },
+    "by_language": [
+      {
+        "key": "hi-en",
+        "n_trials": 1,
+        "n_pass": 0,
+        "pass_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.7934567085261071
+      }
+    ],
+    "by_category": [
+      {
+        "key": "correction",
+        "n_trials": 1,
+        "n_pass": 0,
+        "pass_rate": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.7934567085261071
+      }
+    ],
+    "latency_p50_ms": 0.8162914891727269,
+    "latency_p95_ms": 1.0342413501348346
+  }
+}

@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="indicorderbench" tests="10" failures="8" errors="0" skipped="0" time="0.015">
+  <testsuite name="indicorderbench:starter" timestamp="2026-10-01T18:23:47+00:00" hostname="Kaushiks-MacBook-Pro.local" tests="10" failures="8" errors="0" skipped="0" time="0.015">
+    <properties>
+      <property name="benchmark_version" value="0.1.0" />
+      <property name="pack_version" value="0.1.0" />
+      <property name="pack_hash" value="d716b40578c5cfe6" />
+      <property name="agent" value="builtin:buggy" />
+      <property name="agent_spec" value="builtin:buggy" />
+      <property name="trials" value="1" />
+      <property name="modality" value="text" />
+    </properties>
+    <testcase name="en_cancellation_01" classname="en-IN.cancellation" time="0.003">
+      <failure message="1 of 1 valid trial failed: Submitted orders: expected 0, actual 1; Mango Lassi quantity: expected 0, actual 1" type="WrongOrder">trial 1: Submitted orders: expected 0, actual 1
+trial 1: Mango Lassi quantity: expected 0, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] One mango lassi, that's all.
+[agent 2 ms] Added 1 Mango Lassi. Your order: 1 Mango Lassi. Order placed, thank you!
+[caller t2] Cancel the order, please.
+[agent 0 ms] Your order has been cancelled. Anything else?
+[caller t3] No, that's all. Bye.
+[agent 1 ms] Your order has been cancelled. Thank you, goodbye!
+check: 2 field(s) wrong vs no_order: Submitted orders expected 0 got 1; Mango Lassi quantity expected 0 got 1</system-out>
+    </testcase>
+    <testcase name="en_correction_01" classname="en-IN.correction" time="0.001" />
+    <testcase name="en_duplicate_submission_01" classname="en-IN.duplicate_submission" time="0.001">
+      <failure message="1 of 1 valid trial failed: Submitted orders: expected 1, actual 2; Masala Chai quantity: expected 0, actual 1" type="WrongOrder">trial 1: Submitted orders: expected 1, actual 2
+trial 1: Masala Chai quantity: expected 0, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] One masala chai, that's all.
+[agent 1 ms] Added 1 Masala Chai. Your order: 1 Masala Chai. Order placed, thank you!
+[caller t2] Yes, that's it, thanks.
+[agent 1 ms] Your order is already placed. Thank you!
+check: 2 field(s) wrong vs one_chai_once: Submitted orders expected 1 got 2; Masala Chai quantity expected 0 got 1</system-out>
+    </testcase>
+    <testcase name="en_modifier_01" classname="en-IN.modifier" time="0.001">
+      <failure message="1 of 1 valid trial failed: Paneer Wrap · Onion: expected No onion, actual With onion" type="WrongOrder">trial 1: Paneer Wrap · Onion: expected No onion, actual With onion</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] One paneer wrap with no onion, please.
+[agent 1 ms] Added 1 Paneer Wrap, No onion. Anything else?
+[caller closing] That's all, thanks.
+[agent 0 ms] Your order: 1 Paneer Wrap, No onion. Order placed, thank you!
+check: 1 field(s) wrong vs wrap_no_onion: Paneer Wrap · Onion expected No onion got With onion</system-out>
+    </testcase>
+    <testcase name="en_quantity_01" classname="en-IN.quantity" time="0.001">
+      <failure message="1 of 1 valid trial failed: Paneer Wrap quantity: expected 2, actual 1" type="WrongOrder">trial 1: Paneer Wrap quantity: expected 2, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Hi, two paneer wraps, please.
+[agent 1 ms] Added 2 Paneer Wrap. Anything else?
+[caller closing] That's all, thanks.
+[agent 0 ms] Your order: 2 Paneer Wrap. Order placed, thank you!
+check: 1 field(s) wrong vs two_wraps: Paneer Wrap quantity expected 2 got 1</system-out>
+    </testcase>
+    <testcase name="hien_cancellation_01" classname="hi-en.cancellation" time="0.002">
+      <failure message="1 of 1 valid trial failed: Submitted orders: expected 0, actual 1; Mango Lassi quantity: expected 0, actual 1" type="WrongOrder">trial 1: Submitted orders: expected 0, actual 1
+trial 1: Mango Lassi quantity: expected 0, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Ek mango lassi, bas itna hi.
+[agent 1 ms] 1 Mango Lassi add kar diya. Aapka order: 1 Mango Lassi. Order place ho gaya, shukriya!
+[caller t2] Order cancel kar do.
+[agent 0 ms] Aapka order cancel kar diya. Aur kuch?
+[caller t3] Nahi, bas. Bye.
+[agent 1 ms] Aapka order cancel ho gaya hai. Shukriya, namaste!
+check: 2 field(s) wrong vs no_order: Submitted orders expected 0 got 1; Mango Lassi quantity expected 0 got 1</system-out>
+    </testcase>
+    <testcase name="hien_correction_01" classname="hi-en.correction" time="0.001" />
+    <testcase name="hien_duplicate_submission_01" classname="hi-en.duplicate_submission" time="0.001">
+      <failure message="1 of 1 valid trial failed: Submitted orders: expected 1, actual 2; Masala Chai quantity: expected 0, actual 1" type="WrongOrder">trial 1: Submitted orders: expected 1, actual 2
+trial 1: Masala Chai quantity: expected 0, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Ek masala chai, bas itna hi.
+[agent 1 ms] 1 Masala Chai add kar diya. Aapka order: 1 Masala Chai. Order place ho gaya, shukriya!
+[caller t2] Haan, bas itna hi, thanks.
+[agent 1 ms] Aapka order pehle se place ho gaya hai. Shukriya!
+check: 2 field(s) wrong vs one_chai_once: Submitted orders expected 1 got 2; Masala Chai quantity expected 0 got 1</system-out>
+    </testcase>
+    <testcase name="hien_modifier_01" classname="hi-en.modifier" time="0.001">
+      <failure message="1 of 1 valid trial failed: Paneer Wrap · Onion: expected No onion, actual With onion" type="WrongOrder">trial 1: Paneer Wrap · Onion: expected No onion, actual With onion</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Ek paneer wrap dena, bina pyaaz.
+[agent 1 ms] 1 Paneer Wrap, No onion add kar diya. Aur kuch?
+[caller closing] Bas itna hi, thanks.
+[agent 0 ms] Aapka order: 1 Paneer Wrap, No onion. Order place ho gaya, shukriya!
+check: 1 field(s) wrong vs wrap_no_onion: Paneer Wrap · Onion expected No onion got With onion</system-out>
+    </testcase>
+    <testcase name="hien_quantity_01" classname="hi-en.quantity" time="0.001">
+      <failure message="1 of 1 valid trial failed: Paneer Wrap quantity: expected 2, actual 1" type="WrongOrder">trial 1: Paneer Wrap quantity: expected 2, actual 1</failure>
+      <system-out>--- trial 1: fail (0.00 s) ---
+[caller t1] Haan ji, do paneer wrap dena.
+[agent 0 ms] 2 Paneer Wrap add kar diya. Aur kuch?
+[caller closing] Bas itna hi, thanks.
+[agent 0 ms] Aapka order: 2 Paneer Wrap. Order place ho gaya, shukriya!
+check: 1 field(s) wrong vs two_wraps: Paneer Wrap quantity expected 2 got 1</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

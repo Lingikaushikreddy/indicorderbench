@@ -17,7 +17,7 @@ caller:
       reply: {text: "Ek. Sirf ek paneer wrap."}
       max_uses: 2
     - id: pyaaz
-      match: ["pyaaz", "onion"]
+      match: ["(pyaaz|onion)[^.!?]*(\\?|chahiye)", "pyaaz ke saath ya"]
       reply: {text: "Bina pyaaz."}
       max_uses: 1
 expected:
