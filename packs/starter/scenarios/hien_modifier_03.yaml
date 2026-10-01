@@ -6,19 +6,19 @@ menu: starter_qsr
 difficulty: medium
 tags: [spice-level, modifier-on-one-line, two-items]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: 'chicken biryani zyada teekha' -> 'chicken biryani, zyada teekhi wali' (biryani is feminine; 'zyada teekhi' added to the menu's spicy aliases); replies say 'normal' rather than the menu word 'medium'; clarification patterns now need a question mark. Native check: the agreement, and that 'normal' reads as the default spice."
 caller:
   turns:
     - id: t1
-      text: "Ek chicken biryani zyada teekha, aur ek veg biryani."
+      text: "Ek chicken biryani, zyada teekhi wali, aur ek veg biryani."
   clarifications:
     - id: teekha_veg
-      match: ["veg biryani.*teekh", "veg.*kitna teekha"]
-      reply: {text: "Veg biryani medium."}
+      match: ["veg biryani[^.!?]*teekh[^.!?]*\\?", "veg[^.!?]*kitn[aei] teekh[^.!?]*\\?"]
+      reply: {text: "Veg biryani normal hi rakhna."}
       max_uses: 2
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
-      reply: {text: "Chicken biryani zyada teekha, veg biryani medium."}
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?"]
+      reply: {text: "Chicken biryani zyada teekhi, veg biryani normal."}
       max_uses: 2
 expected:
   - id: two_biryanis

@@ -6,18 +6,18 @@ menu: starter_qsr
 difficulty: easy
 tags: [smoke, exclusion, single-item]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, smoke turn unchanged; clarification patterns now need a question mark and the onion rule matches any onion question. Native check: 'bina pyaaz' vs 'bina pyaaz ke' or 'pyaaz mat daalna'."
 caller:
   turns:
     - id: t1
       text: "Ek paneer wrap dena, bina pyaaz."
   clarifications:
     - id: pyaaz
-      match: ["pyaaz\\?", "onion\\?", "pyaaz ke saath ya bina"]
+      match: ["(pyaaz|onion)[^.!?]*\\?"]
       reply: {text: "Bina pyaaz."}
       max_uses: 2
     - id: kitne
-      match: ["kitne"]
+      match: ["kitne[^.!?]*\\?"]
       reply: {text: "Ek hi."}
       max_uses: 1
 expected:

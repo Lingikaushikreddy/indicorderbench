@@ -6,22 +6,22 @@ menu: starter_qsr
 difficulty: easy
 tags: [number-words, two-items]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: 'Teen samosa' -> 'Teen samose' (Hindi plural) in turn t1 and the clarification reply; clarification patterns now need a question mark and the chai rule matches 'kitni chai'."
 caller:
   turns:
     - id: t1
-      text: "Teen samosa aur ek masala chai de do."
+      text: "Teen samose aur ek masala chai de do."
   clarifications:
     - id: kitne_samosa
-      match: ["kitne samos", "samosa kitne"]
-      reply: {text: "Teen samosa."}
+      match: ["kitne samos[^.!?]*\\?", "samos[ae] kitne[^.!?]*\\?"]
+      reply: {text: "Teen samose."}
       max_uses: 2
     - id: kitni_chai
-      match: ["kitni chai", "chai kitni", "kitne chai"]
+      match: ["kitn[ie] (masala )?chai[^.!?]*\\?", "chai kitn[ie][^.!?]*\\?"]
       reply: {text: "Ek hi chai."}
       max_uses: 2
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
 expected:

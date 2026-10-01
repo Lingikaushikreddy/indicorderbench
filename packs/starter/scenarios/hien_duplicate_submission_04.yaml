@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: hard
 tags: [long-pause, status-check, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; clarification patterns now need a question mark. Native check: 'Sun rahe ho?' (informal) vs 'Sun rahe hain?' or 'Aawaz aa rahi hai?' to restaurant staff."
 caller:
   turns:
     - id: t1
@@ -18,15 +18,15 @@ caller:
       text: "Theek hai, order place kar do."
   clarifications:
     - id: confirm_first
-      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      match: ["order (place )?kar d(oo|u)n", "confirm kar[^.!?]*\\?", "place kar d(oo|u)n"]
       reply: {text: "Haan, order place kar do."}
       max_uses: 1
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?"]
       reply: {text: "Medium."}
       max_uses: 1
     - id: kitne_naan
-      match: ["kitne naan", "naan kitne"]
+      match: ["kitn[ei] (butter )?naan[^.!?]*\\?", "naan kitn[ei][^.!?]*\\?"]
       reply: {text: "Do naan."}
       max_uses: 1
 expected:

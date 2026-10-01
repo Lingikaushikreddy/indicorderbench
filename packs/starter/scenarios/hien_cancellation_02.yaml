@@ -6,20 +6,20 @@ menu: starter_qsr
 difficulty: medium
 tags: [remove-line, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: 'Do samosa' -> 'Do samose' (Hindi plural) and 'Chai hata do' -> 'Chai rehne do'; clarification patterns now need a question mark. Native check: that 'chai rehne do' unambiguously means drop the chai here (it literally reads 'let the chai be')."
 caller:
   turns:
     - id: t1
-      text: "Do samosa aur ek masala chai."
+      text: "Do samose aur ek masala chai."
     - id: t2
-      text: "Chai hata do."
+      text: "Chai rehne do."
   clarifications:
     - id: konsa_item
-      match: ["konsa item", "kaunsa item", "konsa hataun", "chai ya samosa"]
+      match: ["k(o|au)nsa item[^.!?]*\\?", "k(o|au)nsa hata[^.!?]*\\?", "chai ya samos[^.!?]*\\?"]
       reply: {text: "Chai."}
       max_uses: 2
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
 expected:

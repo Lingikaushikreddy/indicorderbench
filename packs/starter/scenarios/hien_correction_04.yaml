@@ -6,20 +6,20 @@ menu: starter_qsr
 difficulty: hard
 tags: [quantity-correction, named-line, after-agent-asks, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: 'Wait, coffee teen kar do.' -> 'Wait, ek minute... coffee teen kar do.' (the lexicon now ignores 'ek minute' instead of reading it as quantity one); clarification patterns now need a question mark. Native check: the hesitation sounds natural and 'ek minute' is not heard as a count."
 caller:
   turns:
     - id: t1
       text: "Do cold coffee aur ek gulab jamun."
     - id: t2
-      text: "Wait, coffee teen kar do."
+      text: "Wait, ek minute... coffee teen kar do."
   clarifications:
     - id: kitni_coffee
-      match: ["kitni coffee", "coffee kitni", "kitne coffee"]
+      match: ["kitn[ie] (cold )?coffee[^.!?]*\\?", "coffee kitn[ie][^.!?]*\\?"]
       reply: {text: "Teen cold coffee."}
       max_uses: 2
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
 expected:

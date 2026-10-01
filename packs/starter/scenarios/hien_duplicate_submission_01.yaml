@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: easy
 tags: [smoke, closing-twice]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, smoke turns unchanged; clarification patterns now need a question mark and the count rule also matches 'kitni' (chai is feminine)."
 caller:
   turns:
     - id: t1
@@ -17,15 +17,15 @@ caller:
       is_closing: true
   clarifications:
     - id: confirm_first
-      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      match: ["order (place )?kar d(oo|u)n", "confirm kar[^.!?]*\\?", "place kar d(oo|u)n"]
       reply: {text: "Haan, order place kar do."}
       max_uses: 1
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
     - id: kitne
-      match: ["kitne"]
+      match: ["kitn[ie][^.!?]*\\?"]
       reply: {text: "Ek hi."}
       max_uses: 1
 expected:

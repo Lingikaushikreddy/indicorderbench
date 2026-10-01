@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: medium
 tags: [item-swap, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; clarification patterns now need a question mark. Native check: a caller may shorten the swap to 'veg ki jagah chicken kar do'."
 caller:
   turns:
     - id: t1
@@ -15,11 +15,11 @@ caller:
       text: "Sorry, veg biryani ki jagah chicken biryani kar do."
   clarifications:
     - id: konsi_biryani
-      match: ["konsi biryani", "kaunsi biryani", "veg ya chicken", "chicken ya veg"]
+      match: ["k(o|au)nsi biryani[^.!?]*\\?", "veg ya chicken[^.!?]*\\?", "chicken ya veg[^.!?]*\\?"]
       reply: {text: "Chicken biryani."}
       max_uses: 2
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?"]
       reply: {text: "Medium."}
       max_uses: 1
 expected:

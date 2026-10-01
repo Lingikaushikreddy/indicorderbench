@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: medium
 tags: [modifier-correction, after-readback, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; clarification patterns now need a question mark. Native check: 'kam teekha kar do' vs the arguably more idiomatic 'teekha kam kar do', which the parser would read as spicy (needs a 'teekha kam' mild alias first)."
 caller:
   turns:
     - id: t1
@@ -15,11 +15,11 @@ caller:
       text: "Actually, kam teekha kar do."
   clarifications:
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?", "kam ya zyada"]
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?", "kam ya zyada[^.!?]*\\?"]
       reply: {text: "Kam teekha."}
       max_uses: 2
     - id: pyaaz
-      match: ["pyaaz\\?", "onion\\?", "pyaaz ke saath ya bina"]
+      match: ["(pyaaz|onion)[^.!?]*\\?"]
       reply: {text: "Pyaaz ke saath theek hai."}
       max_uses: 1
 expected:

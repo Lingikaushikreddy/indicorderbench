@@ -65,3 +65,22 @@ after editing to make sure the pack still loads and the reference agent still pa
 scenario. If a wording change makes the reference agent fail, open an issue with the
 scenario id and the transcript rather than reverting the wording: the agent's phrase list
 (`src/indicorderbench/agents/lexicon.py`) and the menu aliases are what need to grow.
+
+## Open questions from the model pre-review (2026-10-01)
+
+A language model pre-reviewed the 21 Hinglish scenarios for naturalness; each file's
+`reviewer_notes` records what changed. These are the points where a native speaker's
+judgement matters most. Flip `review_status` only after a human has read the file.
+
+1. `hien_cancellation_02`: does "Chai rehne do" clearly mean "drop the chai" here, or would a
+   caller say "chai cancel kar do" / "chai mat bhejo"?
+2. `hien_modifier_03`: is "zyada teekhi wali" the right agreement for biryani, and does
+   "normal" read as the default spice level?
+3. `hien_correction_04`: does "Wait, ek minute... coffee teen kar do." sound like a natural
+   pause, with no risk of "ek" being heard as a quantity?
+4. `hien_correction_03`: "kam teekha kar do" was kept; "teekha kam kar do" may be more
+   idiomatic but needs a parser alias first (see docs/scenarios.md).
+5. `hien_duplicate_submission_04`: "Sun rahe ho?" is informal; "Sun rahe hain?" or "Aawaz aa
+   rahi hai?" may suit a caller talking to restaurant staff.
+6. `hien_quantity_04`: "3 samosa" was kept singular on purpose as a variant; confirm it is
+   something callers actually say.

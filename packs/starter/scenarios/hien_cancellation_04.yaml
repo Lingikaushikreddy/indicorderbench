@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: hard
 tags: [cancel-after-submit, reorder, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; clarification patterns now need a question mark and the spice rule also matches 'kitni teekhi' (biryani is feminine). Native check: whether a caller would open the new order with 'uski jagah'."
 caller:
   turns:
     - id: t1
@@ -19,15 +19,15 @@ caller:
       is_closing: true
   clarifications:
     - id: confirm_first
-      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      match: ["order (place )?kar d(oo|u)n", "confirm kar[^.!?]*\\?", "place kar d(oo|u)n"]
       reply: {text: "Haan, order place kar do."}
       max_uses: 1
     - id: pakka_cancel
-      match: ["pakka cancel", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
+      match: ["pakka cancel[^.!?]*\\?", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
       reply: {text: "Haan, cancel kar do."}
       max_uses: 1
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?"]
       reply: {text: "Medium."}
       max_uses: 1
 expected:

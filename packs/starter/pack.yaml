@@ -23,7 +23,7 @@ defaults:
       confirm: {text: "Haan, order place kar do."}
       fallback: {text: "Haan, theek hai."}
       nudge: {text: "Ab order place kar do."}
-      confirm_patterns: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      confirm_patterns: ["order (place )?kar d(oo|u)n", "confirm kar[^.!?]*\\?", "place kar d(oo|u)n"]
       goodbye_patterns: ["order place ho gaya", "pehle se place", "shukriya", "dhanyavaad"]
       question_patterns: ["kitne", "kitna", "konsa", "kaunsa", "kya ", "chahiye\\?"]
       clarifications: []

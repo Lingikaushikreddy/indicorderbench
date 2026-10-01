@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: medium
 tags: [cancel-before-submit, multi-turn]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; clarification patterns now need a question mark. Native check: whether 'Nahi,' before the cancel reads as a self-correction rather than as 'no' to 'Aur kuch?'."
 caller:
   turns:
     - id: t1
@@ -15,11 +15,11 @@ caller:
       text: "Nahi, poora order cancel kar do."
   clarifications:
     - id: pakka_cancel
-      match: ["pakka cancel", "poora order cancel\\?", "sab cancel\\?", "cancel kar d(oo|u)n\\?"]
+      match: ["pakka cancel[^.!?]*\\?", "poora order cancel\\?", "sab cancel\\?", "cancel kar d(oo|u)n\\?"]
       reply: {text: "Haan, sab cancel kar do."}
       max_uses: 1
     - id: teekha
-      match: ["kitna teekha", "teekha\\?", "spice level\\?"]
+      match: ["kitn[aei] teekh[aei][^.!?]*\\?", "teekh[aei]\\?", "spice level\\?"]
       reply: {text: "Medium."}
       max_uses: 1
 expected:

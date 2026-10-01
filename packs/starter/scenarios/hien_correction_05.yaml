@@ -6,18 +6,18 @@ menu: starter_qsr
 difficulty: medium
 tags: [demo, mid-order-correction, quantity-correction, modifier, multi-item]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural; demo turn kept verbatim because README.md and docs/demo quote it; clarification patterns now need a question mark. Native check: 'Bina pyaaz.' vs 'Bina pyaaz ke.' or 'Pyaaz mat daalna.'"
 caller:
   turns:
     - id: t1
       text: "Do paneer wrap... actually ek hi karo. Bina pyaaz. Aur ek mango lassi."
   clarifications:
     - id: kitne
-      match: ["kitne", "ek ya do", "how many"]
+      match: ["kitne[^.!?]*\\?", "ek ya do\\?", "how many[^.!?]*\\?"]
       reply: {text: "Ek. Sirf ek paneer wrap."}
       max_uses: 2
     - id: pyaaz
-      match: ["(pyaaz|onion)[^.!?]*(\\?|chahiye)", "pyaaz ke saath ya"]
+      match: ["(pyaaz|onion)[^.!?]*\\?"]
       reply: {text: "Bina pyaaz."}
       max_uses: 1
 expected:

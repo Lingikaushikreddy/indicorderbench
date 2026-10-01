@@ -274,6 +274,7 @@ IGNORED_CLAUSES: list[str] = [
     "are you still there",
     "sun rahe ho",
     "sunai de raha hai",
+    "ek minute",  # a hesitation ("wait, ek minute..."), never a quantity of one
     "hmm",
     "umm",
     "uh",

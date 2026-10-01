@@ -6,14 +6,14 @@ menu: starter_qsr
 difficulty: easy
 tags: [smoke, number-words, single-item]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, smoke turn unchanged; clarification patterns now need a question mark. Native check: 'Haan ji' as the opener after the restaurant answers."
 caller:
   turns:
     - id: t1
       text: "Haan ji, do paneer wrap dena."
   clarifications:
     - id: kitne
-      match: ["kitne", "ek ya do"]
+      match: ["kitne[^.!?]*\\?", "ek ya do\\?"]
       reply: {text: "Do."}
       max_uses: 2
 expected:

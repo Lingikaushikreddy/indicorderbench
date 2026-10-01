@@ -6,18 +6,18 @@ menu: starter_qsr
 difficulty: medium
 tags: [addition, non-exclusive-extras, single-item]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turn unchanged; clarification patterns now need a question mark; the extras reply leads with 'Dono'. Native check: whether 'daal ke' without 'dena' sounds clipped."
 caller:
   turns:
     - id: t1
       text: "Ek chicken wrap, extra cheese aur extra paneer daal ke."
   clarifications:
     - id: extras
-      match: ["konsa extra", "kaunsa extra", "extras\\?", "extra\\?"]
-      reply: {text: "Extra cheese aur extra paneer."}
+      match: ["k(o|au)nsa extra[^.!?]*\\?", "extras\\?", "extra\\?"]
+      reply: {text: "Dono, extra cheese aur extra paneer."}
       max_uses: 2
     - id: kitne
-      match: ["kitne"]
+      match: ["kitne[^.!?]*\\?"]
       reply: {text: "Ek hi."}
       max_uses: 1
 expected:

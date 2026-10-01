@@ -6,14 +6,14 @@ menu: starter_qsr
 difficulty: medium
 tags: [smoke, mid-order-correction, quantity-correction]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, smoke turn unchanged; clarification patterns now need a question mark. Native check: 'ek hi karo' vs 'ek hi dena/karna' for the self-correction."
 caller:
   turns:
     - id: t1
       text: "Do paneer wrap... nahi nahi, ek hi karo."
   clarifications:
     - id: kitne
-      match: ["kitne", "ek ya do"]
+      match: ["kitne[^.!?]*\\?", "ek ya do\\?"]
       reply: {text: "Ek. Sirf ek paneer wrap."}
       max_uses: 2
 expected:

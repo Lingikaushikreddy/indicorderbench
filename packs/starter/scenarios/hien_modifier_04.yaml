@@ -6,20 +6,20 @@ menu: starter_qsr
 difficulty: medium
 tags: [sugar, multi-turn, two-items]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: 'Ek mango lassi kam cheeni.' -> 'Ek mango lassi, kam cheeni wali.'; clarification patterns now need the question mark in the same sentence. Native check: 'pheeki chai' is a common way to ask for no-sugar chai but is not in the parser's inventory."
 caller:
   turns:
     - id: t1
-      text: "Ek mango lassi kam cheeni."
+      text: "Ek mango lassi, kam cheeni wali."
     - id: t2
       text: "Aur ek masala chai, bina cheeni."
   clarifications:
     - id: cheeni_lassi
-      match: ["lassi.*cheeni\\?", "cheeni.*lassi\\?"]
+      match: ["lassi[^.!?]*cheeni[^.!?]*\\?", "cheeni[^.!?]*lassi[^.!?]*\\?"]
       reply: {text: "Lassi mein kam cheeni."}
       max_uses: 2
     - id: cheeni_chai
-      match: ["chai.*cheeni\\?", "cheeni.*chai\\?", "cheeni\\?", "sugar\\?"]
+      match: ["chai[^.!?]*cheeni[^.!?]*\\?", "cheeni[^.!?]*chai[^.!?]*\\?", "cheeni\\?", "sugar\\?"]
       reply: {text: "Chai mein cheeni nahi."}
       max_uses: 2
 expected:

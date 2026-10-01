@@ -6,22 +6,22 @@ menu: starter_qsr
 difficulty: medium
 tags: [number-words, above-two, three-items]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turn unchanged; clarification patterns now need a question mark and accept 'kitni' or 'kitne' with naan and dal. Native check: 'do dal makhani' vs 'do plate dal makhani'."
 caller:
   turns:
     - id: t1
       text: "Chaar butter naan aur do dal makhani, aur ek gulab jamun bhi."
   clarifications:
     - id: kitne_naan
-      match: ["kitne naan", "naan kitne"]
+      match: ["kitn[ei] (butter )?naan[^.!?]*\\?", "naan kitn[ei][^.!?]*\\?"]
       reply: {text: "Chaar naan."}
       max_uses: 2
     - id: kitni_dal
-      match: ["kitni dal", "kitne dal", "dal kitni"]
+      match: ["kitn[ie] dal[^.!?]*\\?", "dal (makhani )?kitn[ie][^.!?]*\\?"]
       reply: {text: "Do dal makhani."}
       max_uses: 2
     - id: kitne_jamun
-      match: ["kitne gulab", "gulab jamun kitne"]
+      match: ["kitne gulab[^.!?]*\\?", "gulab jamun kitne[^.!?]*\\?"]
       reply: {text: "Ek gulab jamun."}
       max_uses: 2
 expected:

@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: medium
 tags: [smoke, cancel-after-submit]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: turns read natural and are unchanged; clarification patterns now need a question mark. Native check: would a caller open the post-placement cancel with 'Arre' or 'Sorry' rather than a bare 'Order cancel kar do'?"
 caller:
   turns:
     - id: t1
@@ -19,15 +19,15 @@ caller:
       is_closing: true
   clarifications:
     - id: confirm_first
-      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      match: ["order (place )?kar d(oo|u)n", "confirm kar[^.!?]*\\?", "place kar d(oo|u)n"]
       reply: {text: "Haan, order place kar do."}
       max_uses: 1
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
     - id: pakka_cancel
-      match: ["pakka cancel", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
+      match: ["pakka cancel[^.!?]*\\?", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
       reply: {text: "Haan, cancel kar do."}
       max_uses: 1
 expected:

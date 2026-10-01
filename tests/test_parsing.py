@@ -4,6 +4,7 @@ import pytest
 
 from indicorderbench.agents import lexicon
 from indicorderbench.agents.parsing import Clause, Intent, parse_utterance, split_clauses
+from indicorderbench.packs import load_pack
 from indicorderbench.schemas.menu import Menu, MenuItem, Modifier, ModifierGroup
 
 
@@ -576,3 +577,27 @@ def test_named_item_edits_are_marked_and_swaps_are_not():
     assert (c.intent, c.item_id, c.targets_named_item) == (Intent.CORRECT, "chicken_wrap", False)
     (c,) = parse("Sorry, veg biryani ki jagah chicken wrap kar do.", "hi-en")
     assert (c.intent, c.item_id, c.targets_named_item) == (Intent.CORRECT, "chicken_wrap", False)
+
+
+# -- Hinglish pre-review additions -------------------------------------------------
+
+
+def test_ek_minute_is_a_hesitation_not_a_quantity():
+    assert "ek minute" in lexicon.IGNORED_CLAUSES
+    assert brief(parse("Ek minute.", "hi-en")) == []
+    # the correction marker before the hesitation still carries into the next clause
+    assert brief(parse("Wait, ek minute... chai teen kar do.", "hi-en")) == [
+        (Intent.CORRECT, "masala_chai", 3, [])
+    ]
+
+
+def test_starter_menu_feminine_spicy_alias(starter_pack_dir):
+    menu = load_pack(starter_pack_dir).menu
+    assert "zyada teekhi" in menu.option("spicy").aliases
+    clauses = parse_utterance(
+        "Ek chicken biryani, zyada teekhi wali, aur ek veg biryani.", menu, "hi-en"
+    )
+    assert brief(clauses) == [
+        (Intent.ADD, "chicken_biryani", 1, ["spicy"]),
+        (Intent.ADD, "veg_biryani", 1, []),
+    ]

@@ -6,7 +6,7 @@ menu: starter_qsr
 difficulty: medium
 tags: [digits, multi-turn, two-items]
 review_status: unreviewed
-reviewer_notes: null
+reviewer_notes: "Model pre-review 2026-10-01: reads natural, turns unchanged; singular 'samosa' after the digit kept as a deliberate variant ('samose' is used in quantity_02, cancellation_02 and duplicate_submission_03); clarification patterns now need a question mark. Native check: '3 samosa' vs '3 samose'."
 caller:
   turns:
     - id: t1
@@ -15,15 +15,15 @@ caller:
       text: "Aur 3 samosa bhi daal dena."
   clarifications:
     - id: kitni_coffee
-      match: ["kitni coffee", "coffee kitni", "kitne coffee"]
+      match: ["kitn[ie] (cold )?coffee[^.!?]*\\?", "coffee kitn[ie][^.!?]*\\?"]
       reply: {text: "Do cold coffee."}
       max_uses: 2
     - id: kitne_samosa
-      match: ["kitne samos", "samosa kitne"]
+      match: ["kitne samos[^.!?]*\\?", "samos[ae] kitne[^.!?]*\\?"]
       reply: {text: "Teen samosa."}
       max_uses: 2
     - id: cheeni
-      match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
+      match: ["cheeni\\?", "sugar\\?", "kitni cheeni[^.!?]*\\?"]
       reply: {text: "Normal cheeni."}
       max_uses: 1
 expected:
