@@ -18,30 +18,16 @@ from indicorderbench.audio.manifest import (
     save_manifest,
     sha256_file,
 )
+
+# Re-exported so existing ``from indicorderbench.audio.tts import ...`` imports keep working.
+from indicorderbench.audio.provider import SARVAM_BASE as SARVAM_BASE
+from indicorderbench.audio.provider import AudioProviderError as AudioProviderError
+from indicorderbench.audio.provider import error_from_response as error_from_response
+from indicorderbench.audio.provider import language_code as language_code
 from indicorderbench.packs import DEFAULT_TURN_IDS, Pack
 from indicorderbench.schemas.scenario import CallerTurn, Language
 
-SARVAM_BASE = "https://api.sarvam.ai"
-
-
-class AudioProviderError(RuntimeError):
-    def __init__(self, detail: str, status: int | None = None) -> None:
-        super().__init__(f"{detail} (status {status})" if status is not None else detail)
-        self.status = status
-        self.detail = detail
-
-
-def language_code(language: str) -> str:
-    """Map a benchmark language to a Sarvam language code (Hinglish uses hi-IN)."""
-    if language == "hi-en":
-        return "hi-IN"
-    if language == "en-IN":
-        return "en-IN"
-    raise ValueError(f"unknown language {language!r}")
-
-
-def error_from_response(resp: httpx.Response) -> AudioProviderError:
-    return AudioProviderError(resp.text[:300], status=resp.status_code)
+WAV_HEADER_BYTES = 44  # a canonical RIFF/WAVE header; anything shorter holds no audio
 
 
 class TTSProvider(Protocol):
@@ -119,11 +105,14 @@ class SarvamTTS:
         if not resp.is_success:
             raise error_from_response(resp)
         try:
-            return base64.b64decode(resp.json()["audios"][0], validate=True)
+            audio = base64.b64decode(resp.json()["audios"][0], validate=True)
         except (ValueError, KeyError, IndexError, TypeError, binascii.Error) as e:
             raise AudioProviderError(
                 f"malformed response: {resp.text[:300]}", status=resp.status_code
             ) from e
+        if len(audio) < WAV_HEADER_BYTES:
+            raise AudioProviderError("empty audio payload", status=resp.status_code)
+        return audio
 
 
 @dataclass

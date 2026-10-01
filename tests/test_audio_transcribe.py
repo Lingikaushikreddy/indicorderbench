@@ -78,3 +78,28 @@ def test_sarvam_stt_errors(response: httpx.Response) -> None:
     with pytest.raises(AudioProviderError) as ei:
         stt.transcribe(b"a", "en-IN")
     assert ei.value.status == response.status_code
+
+
+def test_stt_does_not_import_the_pack_loader():
+    """transcribe.py shares provider pieces via audio/provider.py, not via tts.py and packs."""
+    import subprocess
+    import sys
+
+    code = (
+        "import sys, indicorderbench.audio.transcribe\n"
+        "print(sorted(m for m in ('indicorderbench.packs', 'indicorderbench.audio.tts')"
+        " if m in sys.modules))"
+    )
+    out = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    ).stdout
+    assert out.strip() == "[]"
+
+
+def test_tts_keeps_re_exporting_the_shared_provider_pieces():
+    from indicorderbench.audio import provider, tts
+
+    assert tts.AudioProviderError is provider.AudioProviderError
+    assert tts.language_code is provider.language_code
+    assert tts.error_from_response is provider.error_from_response
+    assert tts.SARVAM_BASE == provider.SARVAM_BASE == "https://api.sarvam.ai"

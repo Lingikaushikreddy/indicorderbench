@@ -9,7 +9,7 @@ from typing import Protocol, runtime_checkable
 import httpx
 
 from indicorderbench.audio.manifest import ClipManifest
-from indicorderbench.audio.tts import (
+from indicorderbench.audio.provider import (
     SARVAM_BASE,
     AudioProviderError,
     error_from_response,

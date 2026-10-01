@@ -72,6 +72,16 @@ def test_sarvam_tts_errors(response: httpx.Response) -> None:
     assert ei.value.detail
 
 
+@pytest.mark.parametrize("payload", ["", base64.b64encode(b"RIFF" + b"\0" * 39).decode()])
+def test_sarvam_tts_rejects_empty_or_truncated_audio(payload: str) -> None:
+    """An empty (or shorter than a WAV header) audios[0] must not become a zero-byte clip."""
+    response = httpx.Response(200, json={"audios": [payload]})
+    tts = SarvamTTS("k", client=httpx.Client(transport=httpx.MockTransport(lambda r: response)))
+    with pytest.raises(AudioProviderError) as ei:
+        tts.synthesize("hi", "en-IN", "v")
+    assert ei.value.detail == "empty audio payload" and ei.value.status == 200
+
+
 def test_sarvam_tts_network_error() -> None:
     def boom(req: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down")
