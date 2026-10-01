@@ -7,7 +7,6 @@ SNR is the ratio of whole-clip RMS of signal to noise.
 from __future__ import annotations
 
 import importlib
-import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -56,6 +55,8 @@ def add_noise(
     np = _np()
     rng = np.random.default_rng(seed)
     n = len(samples)
+    if n == 0:
+        return np.asarray(samples, dtype=float).copy()
     noise = rng.standard_normal(n) if kind == "white" else _pink(n, rng)
     sig_rms, noise_rms = _rms(samples), _rms(noise)
     if noise_rms == 0.0:
@@ -130,19 +131,38 @@ def perturb_dir(src: Path, dst: Path, spec: PerturbSpec) -> list[Path]:
     from indicorderbench.audio.wav import read_wav, write_wav
 
     np = _np()
+    from indicorderbench.audio.manifest import sha256_file
+
     written: list[Path] = []
+    hashes: dict[str, str] = {}  # source clip sha256 -> perturbed clip sha256
     for wav in sorted(src.rglob("*.wav")):
         samples, sr = read_wav(wav)
         out = np.clip(apply(np.asarray(samples, dtype=float), sr, spec), -1.0, 1.0)
         target = dst / wav.relative_to(src)
         write_wav(target, out.tolist(), sr)
         written.append(target)
-    manifest: dict[str, Any] = {"version": 1, "clips": []}
-    src_manifest = src / "manifest.json"
-    if src_manifest.exists():
-        manifest = json.loads(src_manifest.read_text(encoding="utf-8"))
-    manifest["derived_from"] = str(src)
-    manifest["perturbation"] = asdict(spec)
+        hashes[sha256_file(wav)] = sha256_file(target)
     dst.mkdir(parents=True, exist_ok=True)
-    (dst / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    _write_derived_manifest(src, dst, spec, hashes)
     return written
+
+
+def _write_derived_manifest(
+    src: Path, dst: Path, spec: PerturbSpec, hashes: dict[str, str]
+) -> None:
+    """Copy the source manifest, rehashing entries so they match the perturbed files."""
+    from indicorderbench.audio.manifest import ClipManifest, load_manifest, save_manifest
+
+    src_manifest = src / "manifest.json"
+    m = load_manifest(src_manifest) if src_manifest.exists() else ClipManifest()
+    for clip in m.clips:
+        clip.sha256 = hashes.get(clip.sha256, clip.sha256)
+    perturbation: dict[str, Any] = asdict(spec)
+    if m.derived_from is not None:
+        perturbation["previous"] = {
+            "derived_from": m.derived_from,
+            "perturbation": m.perturbation,
+        }
+    m.derived_from = str(src)
+    m.perturbation = perturbation
+    save_manifest(m, dst / "manifest.json")

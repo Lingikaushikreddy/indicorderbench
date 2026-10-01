@@ -65,7 +65,10 @@ class SarvamTranscriber:
         if not resp.is_success:
             raise error_from_response(resp)
         try:
-            return str(resp.json()["transcript"])
+            transcript = resp.json()["transcript"]
+            if not isinstance(transcript, str):
+                raise TypeError("transcript is not a string")
+            return transcript
         except (ValueError, KeyError, TypeError) as e:
             raise AudioProviderError(
                 f"malformed response: {resp.text[:300]}", status=resp.status_code

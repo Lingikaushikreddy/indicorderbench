@@ -67,7 +67,11 @@ def test_sarvam_stt_unknown_language_omits_code() -> None:
 
 @pytest.mark.parametrize(
     "response",
-    [httpx.Response(401, text="bad key"), httpx.Response(200, json={"other": 1})],
+    [
+        httpx.Response(401, text="bad key"),
+        httpx.Response(200, json={"other": 1}),
+        httpx.Response(200, json={"transcript": None}),
+    ],
 )
 def test_sarvam_stt_errors(response: httpx.Response) -> None:
     stt = SarvamTranscriber("k", client=_client(lambda r: response))

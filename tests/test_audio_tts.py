@@ -203,3 +203,23 @@ def test_synth_pack_scenario_filter_and_clarifications(tmp_path: Path) -> None:
     assert "clips/en_quantity_01/c_size.wav" in rels
     assert "clips/_defaults/en-IN/c_spice.wav" in rels
     assert not any("en_cancellation_01" in r for r in rels)
+
+
+def test_synth_pack_resynthesizes_when_job_changed(tmp_path: Path) -> None:
+    pack = pack_copy(tmp_path)
+    audio = wav_bytes(tmp_path)
+    synth_pack(pack, FakeTTS(audio), "v")
+    # same inputs: nothing to do
+    assert not synth_pack(pack, FakeTTS(audio), "v").written
+    # voice change
+    assert synth_pack(pack, FakeTTS(audio), "other").written
+    # text change
+    pack.scenario("en_quantity_01").caller.turns[0].text = "Three paneer wraps."
+    tts = FakeTTS(audio)
+    rep = synth_pack(pack, tts, "other")
+    assert [c[0] for c in tts.calls] == ["Three paneer wraps."]
+    assert len(rep.written) == 1
+    # model change
+    tts2 = FakeTTS(audio)
+    tts2.model = "fake-2"
+    assert len(synth_pack(pack, tts2, "other").written) > 0

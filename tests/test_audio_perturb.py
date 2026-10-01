@@ -119,26 +119,91 @@ def test_normalise_peak() -> None:
     assert np.array_equal(normalise_peak(np.zeros(10)), np.zeros(10))
 
 
-def test_apply_composes_and_defaults_are_identity() -> None:
+def test_apply_defaults_are_identity() -> None:
     x = sine(500, 0.5)
     assert np.allclose(apply(x, SR, PerturbSpec()), x)
-    y = apply(x, SR, PerturbSpec(snr_db=15, gain_db=-3, telephone=True, seed=1))
-    assert y.shape == x.shape
+
+
+def test_apply_each_option_takes_effect() -> None:
+    x = sine(300, 1.0)
+    assert rms(apply(x, SR, PerturbSpec(gain_db=-6.0))) / rms(x) == pytest.approx(0.5, rel=0.01)
+    low = sine(100) + sine(1000)
+    y = apply(low, SR, PerturbSpec(telephone=True))
+    assert band_energy_db(y, 1000) - band_energy_db(y, 100) >= 20
+    n = apply(x, SR, PerturbSpec(snr_db=10, seed=1)) - x
+    assert 20 * math.log10(rms(x) / rms(n)) == pytest.approx(10.0, abs=0.5)
+
+
+def test_apply_order_is_telephone_gain_noise() -> None:
+    x = sine(1000) + sine(100)
+    spec = PerturbSpec(snr_db=20, gain_db=-6, telephone=True, seed=5)
+    expected = add_noise(gain(telephone(x, SR), -6), SR, 20, seed=5)
+    assert np.allclose(apply(x, SR, spec), expected)
+
+
+def test_add_noise_pink_empty_array() -> None:
+    out = add_noise(np.zeros(0), SR, 10.0, kind="pink", seed=1)
+    assert out.shape == (0,)
 
 
 def test_perturb_dir_mirrors_tree(tmp_path: Path) -> None:
     src = tmp_path / "src"
-    (src / "s1").mkdir(parents=True)
-    (src / "_defaults" / "hi-en").mkdir(parents=True)
-    write_wav(src / "s1" / "t1.wav", sine(400, 0.1).tolist(), SR)
-    write_wav(src / "_defaults" / "hi-en" / "closing.wav", sine(400, 0.1).tolist(), SR)
-    (src / "manifest.json").write_text(json.dumps({"version": 1, "clips": []}))
+    x = sine(400, 0.1)
+    write_wav(src / "s1" / "t1.wav", x.tolist(), SR)
+    write_wav(src / "_defaults" / "hi-en" / "closing.wav", x.tolist(), SR)
+    write_manifest(src, [("s1/t1.wav", "hello")])
     dst = tmp_path / "dst"
     out = perturb_dir(src, dst, PerturbSpec(snr_db=10, seed=2))
     rel = sorted(p.relative_to(dst).as_posix() for p in out)
     assert rel == ["_defaults/hi-en/closing.wav", "s1/t1.wav"]
-    m = json.loads((dst / "manifest.json").read_text())
-    assert m["derived_from"] == str(src)
-    assert m["perturbation"]["snr_db"] == 10
     samples, sr = read_wav(dst / "s1" / "t1.wav")
     assert sr == SR and len(samples) == 1600
+    noise = np.array(samples) - x
+    assert 20 * math.log10(rms(x) / rms(noise)) == pytest.approx(10.0, abs=0.7)
+
+
+def write_manifest(root: Path, items: list[tuple[str, str]], **extra: object) -> None:
+    from indicorderbench.audio.manifest import sha256_file
+
+    clips = [
+        {
+            "path": f"clips/{rel}",
+            "sha256": sha256_file(root / rel),
+            "scenario_id": "s1",
+            "turn_id": "t1",
+            "text": text,
+            "language": "hi-en",
+            "provider": "p",
+            "voice": "v",
+            "model": "m",
+            "created_at": "2026-10-01T00:00:00Z",
+        }
+        for rel, text in items
+    ]
+    (root / "manifest.json").write_text(json.dumps({"version": 1, "clips": clips, **extra}))
+
+
+def test_perturb_dir_rehashes_manifest_and_records_derivation(tmp_path: Path) -> None:
+    from indicorderbench.audio.manifest import load_manifest, sha256_file
+    from indicorderbench.audio.transcribe import OracleTranscriber
+
+    src = tmp_path / "src"
+    write_wav(src / "s1" / "t1.wav", sine(400, 0.1).tolist(), SR)
+    write_manifest(src, [("s1/t1.wav", "hello")])
+    dst = tmp_path / "dst"
+    perturb_dir(src, dst, PerturbSpec(snr_db=10, seed=2))
+    m = load_manifest(dst / "manifest.json")
+    assert m.derived_from == str(src)
+    assert m.perturbation is not None and m.perturbation["snr_db"] == 10
+    assert m.clips[0].sha256 == sha256_file(dst / "s1" / "t1.wav")
+    assert m.clips[0].sha256 != sha256_file(src / "s1" / "t1.wav")
+    assert OracleTranscriber(m).transcribe((dst / "s1" / "t1.wav").read_bytes(), "hi-en") == "hello"
+    # chained perturbation keeps the earlier derivation
+    dst2 = tmp_path / "dst2"
+    perturb_dir(dst, dst2, PerturbSpec(gain_db=-3))
+    m2 = load_manifest(dst2 / "manifest.json")
+    assert m2.derived_from == str(dst)
+    assert m2.perturbation is not None
+    prev = m2.perturbation["previous"]
+    assert prev["derived_from"] == str(src) and prev["perturbation"]["snr_db"] == 10
+    assert m2.clips[0].sha256 == sha256_file(dst2 / "s1" / "t1.wav")

@@ -176,6 +176,10 @@ def synth_pack(
             and path.exists()
             and existing is not None
             and existing.sha256 == sha256_file(path)
+            and existing.text == job.text
+            and existing.language == job.language
+            and existing.voice == voice
+            and existing.model == provider.model
         ):
             report.skipped.append(path)
             continue
