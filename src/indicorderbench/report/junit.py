@@ -17,7 +17,7 @@ from indicorderbench.schemas.results import Outcome, ScenarioResult, SuiteResult
 CaseKind = Literal["pass", "failure", "error", "skipped"]
 
 # Characters XML 1.0 cannot represent (control codes such as ESC or NUL in tracebacks).
-_XML_ILLEGAL = re.compile("[^\t\n\r\x20-퟿-�\U00010000-\U0010ffff]")
+_XML_ILLEGAL = re.compile("[^\t\n\r\x20-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]")
 
 
 def _clean(text: str) -> str:

@@ -71,6 +71,22 @@ def test_scenarios_without_valid_trials_are_unknown() -> None:
     assert any("en_quantity_01" in p and "no valid trials" in p for p in c.problems)
 
 
+def test_unknown_problem_names_each_run_without_valid_trials() -> None:
+    baseline = make_suite(
+        {"en_quantity_01": [INF], "en_modifier_01": [INF], "hien_correction_01": [P]}
+    )
+    current = make_suite(
+        {"en_quantity_01": [INF], "en_modifier_01": [P], "hien_correction_01": [INF]}
+    )
+    c = compare(baseline, current)
+    assert [s.status for s in c.scenarios] == ["unknown", "unknown", "unknown"]
+    assert c.problems == [
+        "en_quantity_01: no valid trials in the baseline and current runs, not compared",
+        "en_modifier_01: no valid trials in the baseline run, not compared",
+        "hien_correction_01: no valid trials in the current run, not compared",
+    ]
+
+
 def test_refuses_different_pack_ids() -> None:
     with pytest.raises(ReportError) as e:
         compare(

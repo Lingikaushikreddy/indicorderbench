@@ -120,8 +120,13 @@ def compare(baseline: SuiteResult, current: SuiteResult, max_regression: float =
         )
     for d in deltas:
         if d.status == "unknown":
-            run = "baseline" if d.baseline_rate is None else "current"
-            problems.append(f"{d.scenario_id}: no valid trials in the {run} run, not compared")
+            runs = [
+                name
+                for name, rate in (("baseline", d.baseline_rate), ("current", d.current_rate))
+                if rate is None
+            ]
+            where = f"{' and '.join(runs)} run{'s' if len(runs) > 1 else ''}"
+            problems.append(f"{d.scenario_id}: no valid trials in the {where}, not compared")
     delta = _diff(baseline.metrics.pass_rate, current.metrics.pass_rate)
     suite_dropped = delta is not None and delta < -max_regression - _EPS
     perfect_dropped = any(

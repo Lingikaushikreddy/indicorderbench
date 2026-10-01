@@ -130,3 +130,20 @@ def test_junit_strips_characters_xml_cannot_hold(tmp_path: Path) -> None:
     out = cases["en_quantity_01"].find("system-out")
     assert out is not None and out.text is not None
     assert "ANSI [31mred[0m and NUL  bytes" in out.text
+
+
+def test_source_has_no_invisible_or_unassigned_characters() -> None:
+    """Characters such as U+E000 render as nothing in editors and diffs; write them as escapes."""
+    import unicodedata
+
+    src = Path(__file__).resolve().parents[1] / "src"
+    bad = []
+    for path in sorted(src.rglob("*")):
+        if path.suffix not in (".py", ".j2"):
+            continue
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for ch in line:
+                category = unicodedata.category(ch)
+                if ch == "\ufffd" or (category[0] in "CZ" and ch not in "\t "):
+                    bad.append(f"{path.relative_to(src)}:{lineno}: U+{ord(ch):04X} {category}")
+    assert bad == []
