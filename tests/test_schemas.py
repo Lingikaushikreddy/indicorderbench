@@ -242,3 +242,16 @@ def test_snapshot_active_orders_excludes_cancelled():
     )
     assert [o.order_id for o in snap.active_orders()] == ["o2"]
     assert Outcome.PASS.value == "pass"
+
+
+def test_cart_line_modifiers_serialise_sorted():
+    """Sets have hash-seed-dependent iteration order; JSON output must be deterministic."""
+    line = CartLine(line_id="l1", item_id="x", quantity=1, modifiers={"zeta", "alpha", "mid"})
+    assert line.model_dump(mode="json")["modifiers"] == ["alpha", "mid", "zeta"]
+    assert '"modifiers":["alpha","mid","zeta"]' in line.model_dump_json()
+    # round-trips back into a set
+    assert CartLine.model_validate_json(line.model_dump_json()).modifiers == {
+        "zeta",
+        "alpha",
+        "mid",
+    }

@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 class Outcome(StrEnum):
@@ -22,6 +22,11 @@ class CartLine(BaseModel):
     quantity: int = Field(ge=0)
     modifiers: set[str] = Field(default_factory=set)
     note: str | None = None
+
+    @field_serializer("modifiers")
+    def _sorted_modifiers(self, value: set[str]) -> list[str]:
+        """Sets iterate in hash-seed order; sort so results.json is byte-stable."""
+        return sorted(value)
 
 
 class SubmittedOrder(BaseModel):
