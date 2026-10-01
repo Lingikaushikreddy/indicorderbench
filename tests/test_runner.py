@@ -1,7 +1,10 @@
 import asyncio
+import threading
+import time
 from pathlib import Path
 from typing import Any
 
+from indicorderbench.adapters.inprocess import InProcessAdapter
 from indicorderbench.adapters.protocol import (
     AgentReply,
     CallerUtterance,
@@ -153,6 +156,33 @@ async def test_timeout_and_exception_are_infra_errors():
     r = await run_trial(pack, pack.scenario("en_quantity_01"), boom, cfg(), trial=1)
     assert r.outcome is Outcome.INFRA_ERROR and "agent exploded" in (r.error or "")
     assert r.snapshot is not None and r.transcript[0].speaker == "caller"
+
+
+async def test_slow_sync_inprocess_agent_hits_the_turn_timeout():
+    """A blocking sync ``handle`` must not stall the event loop past ``timeout_turn_s``."""
+    pack = load_pack(FIX)
+    release = threading.Event()
+
+    class SlowSyncAgent:
+        def handle(self, u: CallerUtterance) -> AgentReply:
+            release.wait(3)  # a 3 s blocking call; released at the end so the thread exits
+            return AgentReply(text="Order placed!")
+
+    adapter = InProcessAdapter(lambda backend, session: SlowSyncAgent())
+    t0 = time.perf_counter()
+    try:
+        r = await run_trial(
+            pack,
+            pack.scenario("en_quantity_01"),
+            adapter,
+            RunConfig(timeout_turn_s=0.5, timeout_trial_s=5),
+            trial=1,
+        )
+        elapsed = time.perf_counter() - t0
+    finally:
+        release.set()
+    assert r.outcome is Outcome.INFRA_ERROR and "timed out" in (r.error or "")
+    assert elapsed < 2.0, f"run_trial took {elapsed:.2f}s"
 
 
 async def test_stop_failure_is_infra_error():

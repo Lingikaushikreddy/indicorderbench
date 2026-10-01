@@ -120,3 +120,23 @@ def test_lookup_menu_returns_items_with_groups():
     assert [h["item_id"] for h in hits] == ["paneer_wrap"]
     assert [g["group_id"] for g in hits[0]["modifier_groups"]] == ["onion", "extras"]
     assert b.lookup_menu("pizza") == []
+
+
+@pytest.mark.parametrize(
+    ("name", "args", "code"),
+    [
+        ("fly", {}, "unknown_tool"),
+        ("add_item", {"item": "mango_lassi"}, "invalid_args"),
+        ("add_item", {"item_id": "mango_lassi", "quantity": 2.5}, "invalid_args"),
+    ],
+)
+def test_refused_calls_are_traced(name: str, args: dict[str, object], code: str):
+    b = make_backend()
+    with pytest.raises(BackendError) as e:
+        b.call(name, args)
+    assert e.value.code == code
+    trace = b.snapshot().trace
+    assert len(trace) == 1, trace
+    assert trace[0].name == name and args.items() <= trace[0].args.items()
+    assert trace[0].error is not None and trace[0].error.startswith(f"{code}: ")
+    assert trace[0].result is None and b.get_cart() == []

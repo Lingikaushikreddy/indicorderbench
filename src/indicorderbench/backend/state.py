@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import copy
+import inspect
 import itertools
 import time
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, NoReturn, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from indicorderbench.schemas.menu import Menu
 from indicorderbench.schemas.results import BackendSnapshot, CartLine, SubmittedOrder, ToolCall
@@ -30,6 +31,15 @@ def _default_clock() -> Callable[[], float]:
     return lambda: (time.perf_counter() - t0) * 1000.0
 
 
+def _describe(error: Exception) -> str:
+    """A one-line message for a bad-argument error raised inside a tool."""
+    if isinstance(error, ValidationError):
+        return "; ".join(
+            f"{'.'.join(str(x) for x in e['loc']) or 'value'}: {e['msg']}" for e in error.errors()
+        )
+    return str(error)
+
+
 def _jsonable(value: Any) -> Any:
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json")
@@ -42,7 +52,8 @@ class OrderBackend:
     """Menu lookup, cart operations and order submission for one call session.
 
     Every public tool method appends a :class:`ToolCall` to the trace, including failed
-    calls, so a report can show exactly what the agent did and when.
+    calls, so a report can show exactly what the agent did and when. Calls through
+    :meth:`call` are traced even when the tool name or the argument names are wrong.
     """
 
     TOOL_NAMES: tuple[str, ...] = (
@@ -75,6 +86,12 @@ class OrderBackend:
             call.error = f"{e.code}: {e.message}"
             self._trace.append(call)
             raise
+        except (ValueError, TypeError) as e:
+            # e.g. add_item(quantity=2.5): the CartLine model rejects it
+            refused = BackendError("invalid_args", _describe(e))
+            call.error = f"{refused.code}: {refused.message}"
+            self._trace.append(call)
+            raise refused from e
         call.result = _jsonable(result)
         self._trace.append(call)
         return result
@@ -226,15 +243,37 @@ class OrderBackend:
             )
         )
 
+    def _refuse(self, name: str, args: dict[str, Any], error: BackendError) -> NoReturn:
+        """Trace a call refused before the tool ran, then raise ``error``."""
+        self._trace.append(
+            ToolCall(
+                seq=len(self._trace) + 1,
+                t_ms=self._clock(),
+                name=name,
+                args=dict(args),
+                error=f"{error.code}: {error.message}",
+            )
+        )
+        raise error
+
     def call(self, name: str, args: dict[str, Any]) -> Any:
-        """Dispatch a tool by name. Used by the HTTP server and LLM tool-use loops."""
+        """Dispatch a tool by name. Used by the HTTP server and LLM tool-use loops.
+
+        Raises :class:`BackendError` for an unknown tool or bad arguments; every refusal is
+        recorded in the trace.
+        """
         if name not in self.TOOL_NAMES:
-            raise BackendError("unknown_tool", f"no tool {name!r}")
+            self._refuse(name, args, BackendError("unknown_tool", f"no tool {name!r}"))
         fn = getattr(self, name)
         try:
-            result = fn(**args)
+            inspect.signature(fn).bind(**args)
         except TypeError as e:
-            raise BackendError("invalid_args", str(e)) from e
+            self._refuse(name, args, BackendError("invalid_args", str(e)))
+        try:
+            result = fn(**args)
+        except (ValueError, TypeError) as e:
+            # raised before the tool reached its traced body, e.g. modifiers=5
+            self._refuse(name, args, BackendError("invalid_args", _describe(e)))
         return _jsonable(result)
 
     @staticmethod

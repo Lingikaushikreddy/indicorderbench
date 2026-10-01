@@ -90,6 +90,9 @@ class BackendServer:
                 except BackendError as e:
                     self._error(400, e.code, e.message)
                     return
+                except Exception as e:  # never drop the connection on an unexpected failure
+                    self._error(500, "internal", f"{type(e).__name__}: {e}")
+                    return
                 self._send(200, {"ok": True, "result": result})
 
         httpd = ThreadingHTTPServer((self._host, self._port), Handler)

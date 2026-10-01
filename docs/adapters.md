@@ -41,6 +41,12 @@ clip; run `iob synth` first), `both` sends both.
 Write a factory that takes the backend and session and returns an object with a `handle`
 method (sync or async). Point the CLI at it with `python:my_pkg.my_module:make_agent`.
 
+An `async def handle` runs on the runner's event loop, so it must not block it. A plain
+`def handle` runs in a worker thread, so `--timeout-turn` applies to it too. Python cannot
+interrupt a thread: a sync handler that times out keeps running in its worker thread until
+it returns. The trial is already scored `infra_error` by then, but a handler that never
+returns can delay the end of the run.
+
 ```python
 # my_pkg/my_module.py
 from indicorderbench.adapters.protocol import AgentReply, CallerUtterance, SessionInfo
@@ -102,6 +108,7 @@ POST {backend_url}/sessions/{session_id}/tools/{name}  body: JSON args object
      200 {"ok": true, "result": ...}
      400 {"ok": false, "error": {"code": "unknown_item", "message": "..."}}
      404 unknown session
+     500 {"ok": false, "error": {"code": "internal", "message": "..."}}
 ```
 
 Tool names and arguments are exactly those of `OrderBackend`: `lookup_menu(query)`,

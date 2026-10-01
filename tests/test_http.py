@@ -85,6 +85,40 @@ def test_backend_error_is_400(served: Any) -> None:
     assert r.status_code == 400 and r.json()["error"]["code"] == "unknown_tool"
 
 
+def test_float_quantity_is_400_and_the_server_keeps_serving(served: Any) -> None:
+    server, _, backend = served
+    with httpx.Client(base_url=server.url) as client:
+        r = client.post(
+            "/sessions/s1/tools/add_item", json={"item_id": "mango_lassi", "quantity": 2.5}
+        )
+        assert r.status_code == 400
+        body = r.json()
+        assert body["ok"] is False and body["error"]["code"] == "invalid_args"
+        assert isinstance(body["error"]["message"], str) and "quantity" in body["error"]["message"]
+        r = client.post("/sessions/s1/tools/add_item", json={"item_id": "mango_lassi"})
+        assert r.status_code == 200 and r.json()["result"]["quantity"] == 1
+    trace = backend.snapshot().trace
+    assert [c.error is not None for c in trace] == [True, False]
+
+
+def test_unexpected_tool_exception_is_500(served: Any) -> None:
+    server, registry, _ = served
+
+    class Exploding(OrderBackend):
+        def get_cart(self) -> Any:
+            raise RuntimeError("disk on fire")
+
+    registry.register("boom", Exploding(load_pack(FIX).menu))
+    with httpx.Client(base_url=server.url) as client:
+        r = client.post("/sessions/boom/tools/get_cart")
+        assert r.status_code == 500
+        assert r.json() == {
+            "ok": False,
+            "error": {"code": "internal", "message": "RuntimeError: disk on fire"},
+        }
+        assert client.get("/healthz").status_code == 200
+
+
 def test_unknown_session_and_route_are_404(served: Any) -> None:
     server, _, _ = served
     assert httpx.get(f"{server.url}/sessions/zzz/menu").status_code == 404
