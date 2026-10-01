@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/Lingikaushikreddy/indicorderbench/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Lingikaushikreddy/indicorderbench/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://pypi.org/project/indicorderbench/"><img alt="PyPI" src="https://img.shields.io/pypi/v/indicorderbench.svg"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776AB.svg">
   <img alt="No API keys needed for the demo" src="https://img.shields.io/badge/demo-no%20API%20keys-success.svg">
@@ -68,8 +69,7 @@ so an agent change that starts placing wrong orders fails the build before it re
 ## Quick start
 
 ```bash
-pip install indicorderbench          # PyPI release coming; until then install from git:
-pip install "git+https://github.com/Lingikaushikreddy/indicorderbench.git"
+pip install indicorderbench          # or: uv tool install indicorderbench
 
 iob demo --out demo-out              # buggy vs fixed reference agent, no network, no keys
 iob run starter --agent builtin:correct --tag smoke --trials 3
@@ -203,7 +203,6 @@ Write your own scenarios or a new language pack: [docs/scenarios.md](docs/scenar
 - A LiveKit Agents adapter and a Pipecat adapter.
 - A generative caller for unscripted clarifications.
 - An LLM reference agent, to publish measured ordering accuracy for real STT + LLM + TTS stacks.
-- PyPI release.
 
 If you build or run voice ordering agents and want a category or a language covered, open an
 issue with a real failure you have seen. That is the most useful contribution right now.

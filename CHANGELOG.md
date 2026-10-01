@@ -6,8 +6,8 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Changed
-- README rewritten for the public repository: comparison table, report screenshot,
-  install from git until the PyPI release.
+- README rewritten for the public repository: comparison table, report screenshot.
+- 0.1.0 published to PyPI on 2026-10-01 through the trusted-publishing release workflow.
 
 ## [0.1.0] - 2026-10-01
 
