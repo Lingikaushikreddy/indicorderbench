@@ -19,11 +19,13 @@ CATEGORY_FOR_BUG = {
 def test_pack_is_valid_and_complete(starter_pack_dir):
     assert validate_pack(starter_pack_dir) == []
     pack = load_pack(starter_pack_dir)
-    assert len(pack.scenarios) == 40
+    assert len(pack.scenarios) == 42
     for lang in ("en-IN", "hi-en"):
         for cat in ("quantity", "modifier", "correction", "cancellation", "duplicate_submission"):
-            assert len(pack.filter(languages=[lang], categories=[cat])) == 4
+            expected = 5 if cat == "correction" else 4  # correction carries the demo scenario
+            assert len(pack.filter(languages=[lang], categories=[cat])) == expected
     assert len(pack.filter(tags=["smoke"])) == 10
+    assert [s.id for s in pack.filter(tags=["demo"])] == ["en_correction_05", "hien_correction_05"]
 
 
 def test_correct_agent_passes_everything(starter_pack_dir):

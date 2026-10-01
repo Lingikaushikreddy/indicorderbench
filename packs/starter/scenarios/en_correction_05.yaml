@@ -1,0 +1,29 @@
+id: en_correction_05
+title: Two wraps corrected to one, no onion, plus a lassi (demo)
+language: en-IN
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [demo, mid-order-correction, quantity-correction, modifier, multi-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Two paneer wraps... actually make it one. No onion. And one mango lassi."
+  clarifications:
+    - id: how_many
+      match: ["how many", "one or two"]
+      reply: {text: "One. Just one paneer wrap."}
+      max_uses: 2
+    - id: onion
+      match: ["onion"]
+      reply: {text: "No onion, please."}
+      max_uses: 1
+expected:
+  - id: single_order
+    description: One active order, one paneer wrap without onion and one mango lassi
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 1, modifiers: {onion: no_onion}}
+          - {item_id: mango_lassi, quantity: 1}

@@ -1,0 +1,29 @@
+id: hien_correction_05
+title: Do wrap se ek, bina pyaaz, aur ek lassi (demo)
+language: hi-en
+category: correction
+menu: starter_qsr
+difficulty: medium
+tags: [demo, mid-order-correction, quantity-correction, modifier, multi-item]
+review_status: unreviewed
+reviewer_notes: null
+caller:
+  turns:
+    - id: t1
+      text: "Do paneer wrap... actually ek hi karo. Bina pyaaz. Aur ek mango lassi."
+  clarifications:
+    - id: kitne
+      match: ["kitne", "ek ya do", "how many"]
+      reply: {text: "Ek. Sirf ek paneer wrap."}
+      max_uses: 2
+    - id: pyaaz
+      match: ["pyaaz", "onion"]
+      reply: {text: "Bina pyaaz."}
+      max_uses: 1
+expected:
+  - id: single_order
+    description: One active order, one paneer wrap without onion and one mango lassi
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 1, modifiers: {onion: no_onion}}
+          - {item_id: mango_lassi, quantity: 1}
