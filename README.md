@@ -70,8 +70,13 @@ def make_agent(backend, session):
 iob run starter --agent python:my_agent:make_agent
 ```
 
-**2. HTTP.** Your agent runs anywhere and receives each caller turn by HTTP; it calls the
-sandbox backend over HTTP too. `examples/http_agent_shim.py` is a complete working example:
+**2. HTTP.** Your agent runs as its own service and receives each caller turn by HTTP; it
+places the order by calling the sandbox backend that `iob run` serves, so the agent must be
+able to reach that backend URL. By default the backend binds loopback (`127.0.0.1`, a free
+port), which only an agent on the same machine can reach. For a remote agent, pass
+`--backend-host 0.0.0.0 --backend-port <port> --backend-url http://<reachable host>:<port>`
+or expose the port through a tunnel. `examples/http_agent_shim.py` is a complete working
+example:
 
 ```bash
 python examples/http_agent_shim.py --port 8900
@@ -81,6 +86,8 @@ iob run starter --agent http:http://127.0.0.1:8900/iob --tag smoke
 **3. CI gate.** Fail the build when ordering accuracy drops or regresses against a baseline:
 
 ```bash
+# exit 2: below --fail-under or regressed; exit 1: any infra-error trial (tolerate N with
+# --allow-infra N; a run where every trial errored always exits 1)
 iob run starter --agent http:http://127.0.0.1:8900/iob --tag smoke \
     --baseline baselines/smoke.json --fail-under 0.9 --max-regression 0.0
 ```

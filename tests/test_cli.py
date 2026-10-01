@@ -5,12 +5,15 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from indicorderbench.cli import app
+from indicorderbench.cli import _gate, app
 from indicorderbench.report.json_report import read_json
+from indicorderbench.schemas.results import Outcome
+from tests.helpers import make_suite
 
 FIX = Path(__file__).parent / "fixtures" / "minipack"
 GOOD = "python:tests.helpers:make_minipack_agent"
 BUGGY = "python:tests.helpers:make_minipack_buggy_agent"
+HALF_BROKEN = "python:tests.helpers:make_minipack_agent_broken_on_cancellation"
 
 runner = CliRunner()
 
@@ -179,6 +182,37 @@ def test_run_audio_modality_without_clips_is_infra_error(tmp_path: Path):
         "run", str(FIX), "--agent", GOOD, "--out", str(tmp_path / "o"), "--modality", "audio"
     )
     assert code == 1 and "infra" in out.lower()
+
+
+def test_partial_infra_errors_exit_1_unless_allowed(tmp_path: Path):
+    code, out = run_cli("run", str(FIX), "--agent", HALF_BROKEN, "--out", str(tmp_path / "a"))
+    assert code == 1, out
+    assert "1 trial(s) hit infra errors (allowed: 0); fix the agent connection" in out
+    suite = read_json(tmp_path / "a" / "results.json")
+    assert suite.metrics.n_infra_error == 1 and suite.metrics.n_pass == 1
+    code, out = run_cli(
+        "run", str(FIX), "--agent", HALF_BROKEN, "--out", str(tmp_path / "b"), "--allow-infra", "0"
+    )
+    assert code == 1, out
+    code, out = run_cli(
+        "run", str(FIX), "--agent", HALF_BROKEN, "--out", str(tmp_path / "c"), "--allow-infra", "1"
+    )
+    assert code == 0, out
+    assert "infra errors (allowed" not in out
+
+
+def test_infra_gate_takes_precedence_over_threshold_but_both_print(
+    capsys: pytest.CaptureFixture[str],
+):
+    suite = make_suite({"en_quantity_01": [Outcome.FAIL], "en_modifier_01": [Outcome.INFRA_ERROR]})
+    assert _gate(suite, None, 0.9, allow_infra=0) == 1
+    out = capsys.readouterr().out
+    assert "below --fail-under" in out and "1 trial(s) hit infra errors (allowed: 0)" in out
+    assert _gate(suite, None, 0.9, allow_infra=1) == 2
+    assert "infra errors" not in capsys.readouterr().out
+    all_infra = make_suite({"en_quantity_01": [Outcome.INFRA_ERROR]})
+    assert _gate(all_infra, None, None, allow_infra=5) == 1
+    assert "every trial was an infra error" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------------------

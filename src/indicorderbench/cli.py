@@ -123,7 +123,16 @@ def _run_suite(
     scenarios: list,  # type: ignore[type-arg]
     agent: str,
     config: RunConfig,
+    backend_host: str = "127.0.0.1",
+    backend_port: int = 0,
+    advertised_backend_url: str | None = None,
 ) -> SuiteResult:
+    """Run the suite; for HTTP agents also serve the sandbox backend.
+
+    The backend binds ``backend_host:backend_port`` (port 0 picks a free port) and the agent
+    is told ``advertised_backend_url`` in its ``start`` event, or the server's own URL when
+    that is None.
+    """
     try:
         setup = build_adapter_factory(
             agent, modality=config.modality, pack_root=pack.root, timeout_s=config.timeout_turn_s
@@ -139,10 +148,18 @@ def _run_suite(
         from indicorderbench.backend.http import BackendServer
 
         registry = SessionRegistry()
-        server = BackendServer(registry)
-        server.start()
-        backend_url = server.url
-        typer.echo(f"sandbox backend at {backend_url}")
+        server = BackendServer(registry, host=backend_host, port=backend_port)
+        try:
+            server.start()
+        except OSError as e:
+            raise _fail(
+                f"cannot serve the sandbox backend on {backend_host}:{backend_port}: {e}"
+            ) from e
+        backend_url = advertised_backend_url or server.url
+        if backend_url == server.url:
+            typer.echo(f"sandbox backend at {backend_url}")
+        else:
+            typer.echo(f"sandbox backend at {server.url}, advertised to the agent as {backend_url}")
     try:
         return run_suite_sync(
             pack, scenarios, setup.factory, config, backend_url, registry, on_scenario=_progress
@@ -171,7 +188,17 @@ def _write_outputs(
     return comparison
 
 
-def _gate(suite: SuiteResult, comparison: Comparison | None, fail_under: float | None) -> int:
+def _gate(
+    suite: SuiteResult,
+    comparison: Comparison | None,
+    fail_under: float | None,
+    allow_infra: int = 0,
+) -> int:
+    """Exit code for a finished run: infra errors (1) take precedence over accuracy (2).
+
+    The accuracy checks still print when the run also exits 1 for infra errors. A run where
+    every trial was an infra error always exits 1, whatever ``allow_infra`` says.
+    """
     m = suite.metrics
     if m.n_trials_total and m.n_infra_error == m.n_trials_total:
         typer.echo("every trial was an infra error; check the agent connection")
@@ -186,6 +213,12 @@ def _gate(suite: SuiteResult, comparison: Comparison | None, fail_under: float |
         if comparison.regressed:
             typer.echo("ordering accuracy regressed against the baseline")
             code = EXIT_THRESHOLD
+    if m.n_infra_error > allow_infra:
+        typer.echo(
+            f"{m.n_infra_error} trial(s) hit infra errors (allowed: {allow_infra}); "
+            "fix the agent connection"
+        )
+        return EXIT_ERROR
     return code
 
 
@@ -268,8 +301,42 @@ def run(
         float, typer.Option("--timeout-trial", help="seconds per trial")
     ] = 300.0,
     max_turns: Annotated[int, typer.Option("--max-turns", min=1)] = 20,
+    allow_infra: Annotated[
+        int,
+        typer.Option(
+            "--allow-infra",
+            min=0,
+            help="infra-error trials tolerated before exiting 1",
+        ),
+    ] = 0,
+    backend_host: Annotated[
+        str,
+        typer.Option(
+            "--backend-host",
+            help="address the sandbox backend binds for http: agents (0.0.0.0 for remote agents)",
+        ),
+    ] = "127.0.0.1",
+    backend_port: Annotated[
+        int,
+        typer.Option(
+            "--backend-port", min=0, max=65535, help="sandbox backend port (0 picks a free one)"
+        ),
+    ] = 0,
+    backend_url: Annotated[
+        str | None,
+        typer.Option(
+            "--backend-url",
+            help="backend URL sent to http: agents in the start event "
+            "(default: the bound server's own URL)",
+        ),
+    ] = None,
 ) -> None:
     """Run scenarios against an agent and write results.json, junit.xml and report.html."""
+    if backend_url is not None and not backend_url.startswith(("http://", "https://")):
+        raise typer.BadParameter(
+            f"must start with http:// or https://, got {backend_url!r}",
+            param_hint="--backend-url",
+        )
     loaded = _load(pack)
     scenarios = _select(loaded, tag, language, category, id)
     config = RunConfig(
@@ -281,11 +348,19 @@ def run(
         max_turns=max_turns,
     )
     typer.echo(f"running {len(scenarios)} scenario(s) x {trials} trial(s) against {agent}")
-    suite = _run_suite(loaded, scenarios, agent, config)
+    suite = _run_suite(
+        loaded,
+        scenarios,
+        agent,
+        config,
+        backend_host=backend_host,
+        backend_port=backend_port,
+        advertised_backend_url=backend_url,
+    )
     out_dir = out or Path("results") / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     comparison = _write_outputs(suite, out_dir, baseline, max_regression)
     _print_summary(suite)
-    raise typer.Exit(_gate(suite, comparison, fail_under))
+    raise typer.Exit(_gate(suite, comparison, fail_under, allow_infra))
 
 
 @app.command()

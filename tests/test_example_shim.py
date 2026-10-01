@@ -1,6 +1,7 @@
 """The example HTTP shim must survive the real runner and the real CLI."""
 
 import importlib.util
+import socket
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -106,3 +107,91 @@ def test_cli_runs_against_the_shim(tmp_path: Path):
         assert suite.metrics.pass_rate == 1.0 and "sandbox backend at" in result.output
     finally:
         httpd.shutdown()
+
+
+def _free_port() -> int:
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return int(s.getsockname()[1])
+
+
+def test_cli_backend_port_and_advertised_url_reach_the_agent(tmp_path: Path):
+    from tests.test_http import TurnServer, order_handler
+
+    port = _free_port()
+    advertised = f"http://127.0.0.1:{port}"
+    with TurnServer(order_handler) as turns:
+        result = CliRunner().invoke(
+            app,
+            [
+                "run",
+                str(REPO / "tests" / "fixtures" / "minipack"),
+                "--agent",
+                f"http:{turns.url}",
+                "--id",
+                "en_quantity_01",
+                "--backend-port",
+                str(port),
+                "--backend-url",
+                advertised,
+                "--out",
+                str(tmp_path / "o"),
+                "--fail-under",
+                "1.0",
+            ],
+            catch_exceptions=False,
+        )
+    assert result.exit_code == 0, result.output
+    starts = [e for e in turns.events if e["event"] == "start"]
+    assert [e["backend_url"] for e in starts] == [advertised]
+    assert read_json(tmp_path / "o" / "results.json").metrics.pass_rate == 1.0
+
+
+def test_cli_advertises_backend_url_different_from_bind_address(tmp_path: Path):
+    """Bind by name (localhost), advertise by address: the agent gets the advertised URL."""
+    from tests.test_http import TurnServer, order_handler
+
+    port = _free_port()
+    advertised = f"http://127.0.0.1:{port}"
+    with TurnServer(order_handler) as turns:
+        result = CliRunner().invoke(
+            app,
+            [
+                "run",
+                str(REPO / "tests" / "fixtures" / "minipack"),
+                "--agent",
+                f"http:{turns.url}",
+                "--id",
+                "en_quantity_01",
+                "--backend-host",
+                "localhost",
+                "--backend-port",
+                str(port),
+                "--backend-url",
+                advertised,
+                "--out",
+                str(tmp_path / "o"),
+            ],
+            catch_exceptions=False,
+        )
+    assert result.exit_code == 0, result.output
+    assert [e["backend_url"] for e in turns.events if e["event"] == "start"] == [advertised]
+    assert f"http://localhost:{port}" in result.output and advertised in result.output
+
+
+def test_cli_rejects_a_backend_url_without_scheme(tmp_path: Path):
+    result = CliRunner().invoke(
+        app,
+        [
+            "run",
+            "starter",
+            "--agent",
+            "http:http://127.0.0.1:9/iob",
+            "--backend-url",
+            "127.0.0.1:8765",
+            "--out",
+            str(tmp_path / "o"),
+        ],
+    )
+    assert result.exit_code == 2 and "--backend-url" in result.output
+    assert "must start with http:// or https://" in result.output

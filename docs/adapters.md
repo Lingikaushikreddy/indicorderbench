@@ -5,7 +5,7 @@ The benchmark talks to your agent through an **adapter**. Two ship in v0.1:
 | Adapter | Spec string | Use when |
 |---|---|---|
 | In-process | `python:<module>:<factory>` | Your agent's logic is importable Python and can call the sandbox backend object directly. |
-| HTTP turn | `http:<url>` | Your agent runs anywhere else. It receives each caller turn by HTTP and calls the sandbox backend over HTTP. |
+| HTTP turn | `http:<url>` | Your agent runs as its own service. It receives each caller turn by HTTP and calls the sandbox backend over HTTP, so it must be able to reach the backend URL (see [Reaching the sandbox backend](#reaching-the-sandbox-backend)). |
 
 Built-in reference agents use `builtin:correct`, `builtin:buggy` and `builtin:buggy:<bug,...>`.
 
@@ -110,6 +110,24 @@ POST {backend_url}/sessions/{session_id}/tools/{name}  body: JSON args object
      404 unknown session
      500 {"ok": false, "error": {"code": "internal", "message": "..."}}
 ```
+
+### Reaching the sandbox backend
+
+The agent must be able to reach the sandbox backend URL it receives in the `start` event.
+By default `iob run` binds the backend to loopback (`127.0.0.1`) on a free port and
+advertises that address, so only an agent on the same machine can reach it. For an agent on
+another host or in a container, bind a reachable interface and a fixed port, and advertise
+the address the agent can use:
+
+```bash
+iob run starter --agent http:https://agent.example.com/iob \
+    --backend-host 0.0.0.0 --backend-port 8765 \
+    --backend-url http://<host the agent can reach>:8765
+```
+
+or keep the default binding and expose the port through a tunnel, passing the tunnel's
+public URL as `--backend-url`. The backend has no authentication; expose it only to the
+agent under test.
 
 Tool names and arguments are exactly those of `OrderBackend`: `lookup_menu(query)`,
 `add_item(item_id, quantity=1, modifiers=[])`, `update_line(line_id, quantity=None,

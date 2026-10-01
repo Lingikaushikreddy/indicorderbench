@@ -4,6 +4,14 @@
 # request and fails the check when ordering accuracy drops below the threshold or regresses
 # against the baseline results committed on main. Nightly, it runs the full pack with three
 # trials per scenario so flaky behaviour shows up as a pass^k drop rather than a single red run.
+#
+# Exit codes: 2 when accuracy is below --fail-under or regressed against the baseline; 1 when
+# any trial hit an infra error (agent unreachable, timeout, crash). Add --allow-infra N to
+# tolerate up to N infra-error trials; a run where every trial errored always fails.
+#
+# The agent calls back into the sandbox backend that `iob run` serves on 127.0.0.1. That works
+# here because the agent runs on the same runner; for a remote agent add --backend-host,
+# --backend-port and --backend-url (see docs/adapters.md).
 name: ordering-accuracy
 on:
   pull_request:

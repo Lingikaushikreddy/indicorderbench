@@ -264,3 +264,13 @@ def make_minipack_agent(backend: object, session: object) -> MiniPackAgent:
 
 def make_minipack_buggy_agent(backend: object, session: object) -> MiniPackAgent:
     return MiniPackAgent(backend, wrap_quantity=1)
+
+
+def make_minipack_agent_broken_on_cancellation(backend: object, session: object) -> MiniPackAgent:
+    """Works on en_quantity_01; raises while starting en_cancellation_01 (an infra error)."""
+    from indicorderbench.adapters.protocol import SessionInfo
+
+    assert isinstance(session, SessionInfo)
+    if session.scenario_id == "en_cancellation_01":
+        raise RuntimeError("agent could not start a session for en_cancellation_01")
+    return MiniPackAgent(backend)
