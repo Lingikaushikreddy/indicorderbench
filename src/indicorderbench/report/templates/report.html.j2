@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8; --surface: #ffffff; --soft: #eef0f3; --ink: #1b1f24; --muted: #5d6673; --line: #e0e3e8;
+  --accent: #3554d1; --agent: #eaeefc;
+  --pass: #17784a; --pass-bg: #e2f4ea; --fail: #b42318; --fail-bg: #fdeceb;
+  --invalid: #8a5800; --invalid-bg: #fcf1d8; --infra: #5a3fb8; --infra-bg: #ece8fb;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116; --surface: #161a21; --soft: #1e232c; --ink: #e5e8ec; --muted: #98a2ae; --line: #2b313b;
+    --accent: #8ea2ff; --agent: #1f2640;
+    --pass: #5fd29a; --pass-bg: #123222; --fail: #ff8b80; --fail-bg: #3b1714;
+    --invalid: #f0c36a; --invalid-bg: #33280e; --infra: #b9a7ff; --infra-bg: #261e47;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); padding: 26px 0 22px; }
+.brand { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 4px 0 16px; font-size: 26px; line-height: 1.25; }
+h1 .sep { color: var(--muted); font-weight: 400; }
+h2 { font-size: 18px; margin: 36px 0 12px; }
+h3 { font-size: 14px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+h4 { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 6px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px 24px; margin: 0; }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 26px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 10px; padding: 14px 16px; }
+.card.warn { border-top-color: var(--invalid); } .card.bad { border-top-color: var(--fail); } .card p { margin: 0; }
+.card .label { font-size: 13px; color: var(--muted); }
+.card .value { font-size: 28px; font-weight: 650; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.card .sub { font-size: 12px; color: var(--muted); }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--soft); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+.num { text-align: right; white-space: nowrap; }
+.ci { white-space: nowrap; }
+.bar { position: relative; height: 8px; min-width: 96px; margin-top: 6px; background: var(--soft); border-radius: 4px; }
+.bar .band { position: absolute; top: 0; bottom: 0; background: var(--accent); opacity: .3; border-radius: 4px; }
+.bar .dot { position: absolute; top: -2px; width: 4px; height: 12px; margin-left: -2px; background: var(--accent); border-radius: 2px; }
+.headline { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 8px; font-size: 16px; }
+.verdict { font-weight: 700; padding: 2px 12px; border-radius: 999px; }
+.verdict.bad { color: var(--fail); background: var(--fail-bg); } .verdict.ok { color: var(--pass); background: var(--pass-bg); }
+.muted { color: var(--muted); font-weight: 400; }
+.problems { margin: 8px 0 14px; padding-left: 20px; color: var(--invalid); font-size: 13px; }
+table.comparison tr.regressed td { background: var(--fail-bg); }
+table.comparison tr.regressed .delta, tr.regressed .status { color: var(--fail); font-weight: 700; }
+table.comparison tr.improved .delta, tr.improved .status { color: var(--pass); font-weight: 700; }
+tr.new .status, tr.removed .status, tr.unknown .status, tr.same .status { color: var(--muted); }
+tr.removed .sid { text-decoration: line-through; color: var(--muted); }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.toolbar button { font: inherit; font-size: 13px; padding: 4px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; cursor: pointer; }
+.toolbar button:hover { border-color: var(--accent); }
+details.scenario { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--pass); border-radius: 8px; margin: 8px 0; }
+details.scenario.fail { border-left-color: var(--fail); } details.scenario.invalid { border-left-color: var(--invalid); }
+details.scenario.infra { border-left-color: var(--infra); }
+summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 14px; cursor: pointer; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▸"; color: var(--muted); width: 10px; }
+details[open] > summary::before { content: "▾"; }
+.sid { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+.stitle { flex: 1 1 220px; }
+.meta { color: var(--muted); font-size: 13px; }
+.rate { font-weight: 650; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: inline-flex; gap: 4px; }
+.chip { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
+.chip-pass { color: var(--pass); background: var(--pass-bg); } .chip-fail { color: var(--fail); background: var(--fail-bg); }
+.chip-invalid { color: var(--invalid); background: var(--invalid-bg); } .chip-infra { color: var(--infra); background: var(--infra-bg); }
+.tag { font-family: var(--mono); font-size: 11px; }
+.scenario-body { border-top: 1px solid var(--line); padding: 2px 16px 16px; }
+.trial { padding-top: 14px; } .trial + .trial { border-top: 1px dashed var(--line); margin-top: 16px; }
+.note { font-size: 13px; margin: 6px 0; } .note.invalid { color: var(--invalid); }
+pre.error { font: 12px/1.45 var(--mono); background: var(--infra-bg); padding: 10px 12px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; }
+code { font: 12px var(--mono); background: var(--soft); padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+table.field-checks td.result { font-weight: 700; white-space: nowrap; }
+table.field-checks tr.pass td.result { color: var(--pass); }
+table.field-checks tr.fail td { background: var(--fail-bg); }
+table.field-checks tr.fail td.result, table.field-checks tr.fail td.actual { color: var(--fail); font-weight: 700; }
+ol.transcript { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+ol.transcript li { display: grid; gap: 3px; align-content: start; min-width: 0; }
+ol.transcript li.caller { grid-column: 1; } ol.transcript li.agent { grid-column: 2; }
+.who { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bubble { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
+li.caller .bubble { border-top-left-radius: 3px; } li.agent .bubble { background: var(--agent); border-top-right-radius: 3px; }
+.latency { font: 11px var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; }
+.empty { color: var(--muted); font-style: italic; }
+audio { height: 32px; width: 100%; max-width: 320px; }
+table.trace { font: 12px/1.4 var(--mono); }
+table.trace td { padding: 4px 10px; overflow-wrap: anywhere; } table.trace tr.err td { color: var(--fail); }
+footer { color: var(--muted); font-size: 12px; margin-top: 44px; padding: 20px 0 40px; border-top: 1px solid var(--line); }
+footer p { margin: 2px 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  ol.transcript { grid-template-columns: 1fr; }
+  ol.transcript li.caller, ol.transcript li.agent { grid-column: 1; }
+  .wrap { padding: 0 14px; }
+}
+</style>
+</head>
+<body>
+{% macro group_table(table_id, heading, rows) %}
+<div class="panel">
+<table id="{{ table_id }}">
+  <thead><tr><th>{{ heading }}</th><th class="num" title="valid trials">Valid</th><th class="num">Passed</th><th class="num">Rate</th><th>95% CI (Wilson)</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td>{{ r.key }}</td><td class="num">{{ r.trials }}</td><td class="num">{{ r.passed }}</td><td class="num">{{ r.rate }}</td>
+      <td class="ci">{{ r.ci }}{% if r.band_style %}<div class="bar"><span class="band" style="{{ r.band_style }}"></span><span class="dot" style="{{ r.dot_style }}"></span></div>{% endif %}</td></tr>
+  {% else %}
+    <tr><td colspan="5" class="empty">No scenarios.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}
+<header class="top">
+  <div class="wrap">
+    <div class="brand">IndicOrderBench</div>
+    <h1>{{ page.pack }} <span class="sep">·</span> {{ page.agent }}</h1>
+    <dl class="facts">
+    {% for name, value in page.facts %}
+      <div><dt>{{ name }}</dt><dd>{{ value }}</dd></div>
+    {% endfor %}
+    </dl>
+  </div>
+</header>
+<main class="wrap">
+  <section class="cards" id="summary" aria-label="Summary">
+  {% for c in page.cards %}
+    <article class="card {{ c.tone }}" id="{{ c.id }}">
+      <p class="label">{{ c.label }}{% if c.sup %}<sup>{{ c.sup }}</sup>{% endif %}</p>
+      <p class="value">{{ c.value }}</p>
+      <p class="sub">{{ c.sub }}</p>
+    </article>
+  {% endfor %}
+  </section>
+
+  <section id="breakdown">
+    <h2>Pass rate by language and category</h2>
+    <div class="split">
+      {{ group_table("by-language", "Language", page.by_language) }}
+      {{ group_table("by-category", "Category", page.by_category) }}
+    </div>
+  </section>
+{% if page.comparison %}
+{% set c = page.comparison %}
+
+  <section id="comparison">
+    <h2>Baseline comparison</h2>
+    <div class="headline">
+      <span class="verdict {{ c.verdict_cls }}">{{ c.verdict }}</span>
+      <span>Suite pass rate {{ c.headline }}</span>
+      <span class="muted">max regression {{ c.tolerance }}{% if c.counts %} · {{ c.counts }}{% endif %}</span>
+    </div>
+    {% if c.baseline_label %}
+    <p class="note muted">Baseline: {{ c.baseline_label }}</p>
+    {% endif %}
+    {% if c.problems %}
+    <ul class="problems">
+      {% for p in c.problems %}
+      <li>{{ p }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="panel">
+    <table class="comparison">
+      <thead><tr><th>Scenario</th><th>Title</th><th class="num">Baseline</th><th class="num">Current</th><th class="num">Delta</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for r in c.rows %}
+        <tr class="{{ r.status }}"><td class="sid">{% if r.linked %}<a href="#scenario-{{ r.id }}">{{ r.id }}</a>{% else %}{{ r.id }}{% endif %}</td><td>{{ r.title }}</td><td class="num">{{ r.baseline }}</td><td class="num">{{ r.current }}</td><td class="num delta">{{ r.delta }}</td><td class="status">{{ r.status }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+{% endif %}
+
+  <section id="scenarios">
+    <div class="toolbar">
+      <h2>Scenarios</h2>
+      <div><button type="button" data-open="1">Expand all</button> <button type="button" data-open="0">Collapse all</button></div>
+    </div>
+  {% for s in page.scenarios %}
+    <details id="scenario-{{ s.id }}" class="scenario {{ s.cls }}"{% if s.open %} open{% endif %}>
+      <summary>
+        <span class="sid">{{ s.id }}</span>
+        <span class="stitle">{{ s.title }}</span>
+        <span class="meta">{{ s.meta }}{% for tag in s.tags %} · #{{ tag }}{% endfor %}</span>
+        <span class="rate" title="{{ s.counts }}">{{ s.rate }}</span>
+        <span class="chips">{% for chip in s.chips %}<span class="chip chip-{{ chip }}">{{ chip }}</span>{% endfor %}</span>
+      </summary>
+      <div class="scenario-body">
+      {% for t in s.trials %}
+        <div class="trial">
+          <h3>Trial {{ t.number }} <span class="chip chip-{{ t.cls }}">{{ t.label }}</span> <span class="muted">{{ t.duration }}{% if t.max_turns_hit %} · max turns hit{% endif %}</span></h3>
+          {% if t.error %}
+          <pre class="error">{{ t.error }}</pre>
+          {% endif %}
+          {% if t.invalid_reason %}
+          <p class="note invalid">Caller could not continue: {{ t.invalid_reason }}</p>
+          {% endif %}
+          {% if t.summary %}
+          <p class="note">Check: {{ t.summary }}</p>
+          {% endif %}
+          {% if t.checks %}
+          <h4>Order check</h4>
+          <div class="panel">
+          <table class="field-checks">
+            <thead><tr><th>Field</th><th>Expected</th><th>Actual</th><th>Result</th></tr></thead>
+            <tbody>
+            {% for f in t.checks %}
+              <tr class="{{ f.cls }}"><td>{{ f.field }}</td><td>{{ f.expected }}</td><td class="actual">{{ f.actual }}</td><td class="result">{{ f.mark }} {{ f.cls }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% endif %}
+          {% if t.orders %}
+          <p class="note muted">Orders at end of call: {% for o in t.orders %}<code>{{ o }}</code>{% endfor %}</p>
+          {% endif %}
+          {% if t.turns %}
+          <h4>Conversation</h4>
+          <ol class="transcript">
+          {% for turn in t.turns %}
+            <li class="{{ turn.speaker }}">
+              <div class="who">{{ turn.who }}{% if turn.tag %} <span class="tag">{{ turn.tag }}</span>{% endif %}{% if turn.latency %} <span class="latency">{{ turn.latency }}</span>{% endif %}</div>
+              <p class="bubble">{% if turn.text %}{{ turn.text }}{% else %}<span class="empty">(no text)</span>{% endif %}</p>
+              {% if turn.audio %}
+              <audio controls src="{{ turn.audio }}"></audio>
+              {% endif %}
+            </li>
+          {% endfor %}
+          </ol>
+          {% endif %}
+          <h4>Tool calls</h4>
+          {% if t.calls %}
+          <div class="panel">
+          <table class="trace">
+            <thead><tr><th class="num">#</th><th class="num">t</th><th>Tool</th><th>Arguments</th><th>Result</th></tr></thead>
+            <tbody>
+            {% for call in t.calls %}
+              <tr{% if call.error %} class="err"{% endif %}><td class="num">{{ call.seq }}</td><td class="num">{{ call.t }}</td><td>{{ call.name }}</td><td>{{ call.args }}</td><td{% if call.title %} title="{{ call.title }}"{% endif %}>{{ call.result }}</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <p class="note empty">No tool calls.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+      </div>
+    </details>
+  {% else %}
+    <p class="empty">No scenarios in this run.</p>
+  {% endfor %}
+  </section>
+</main>
+<footer id="footer">
+  <div class="wrap">
+  {% for line in page.footer %}
+    <p>{{ line }}</p>
+  {% endfor %}
+  </div>
+</footer>
+<script>
+document.querySelectorAll("button[data-open]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    document.querySelectorAll("#scenarios details").forEach(function (d) { d.open = button.dataset.open === "1"; });
+  });
+});
+</script>
+</body>
+</html>
