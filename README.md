@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lingikaushikreddy/-Indicorderbench/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Lingikaushikreddy/-Indicorderbench/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/Lingikaushikreddy/indicorderbench/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Lingikaushikreddy/indicorderbench/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776AB.svg">
   <img alt="No API keys needed for the demo" src="https://img.shields.io/badge/demo-no%20API%20keys-success.svg">
@@ -69,7 +69,7 @@ so an agent change that starts placing wrong orders fails the build before it re
 
 ```bash
 pip install indicorderbench          # PyPI release coming; until then install from git:
-pip install "git+https://github.com/Lingikaushikreddy/-Indicorderbench.git"
+pip install "git+https://github.com/Lingikaushikreddy/indicorderbench.git"
 
 iob demo --out demo-out              # buggy vs fixed reference agent, no network, no keys
 iob run starter --agent builtin:correct --tag smoke --trials 3
