@@ -1,0 +1,28 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-10-01
+
+First release.
+
+### Added
+- Pydantic schemas for menus, scenarios with acceptable end states, and results.
+- Sandbox order backend with a timestamped tool-call trace and JSON-schema tool definitions.
+- Deterministic checker producing field-level expected/actual rows.
+- Scripted caller with clarification rules, confirm/closing/fallback/nudge behaviour and
+  simulator-validity tracking.
+- Runner with per-turn and per-trial timeouts, outcome classification
+  (pass / fail / simulator_invalid / infra_error), pass^k, Wilson intervals and latency
+  percentiles.
+- In-process and HTTP turn adapters; HTTP sandbox backend server.
+- Rule-based reference agent with switchable bugs (`ignore_corrections`, `drop_modifiers`,
+  `double_submit`, `ignore_cancellation`, `quantity_default_one`).
+- Starter pack: 40 scenarios, 20 English and 20 Hinglish, across five failure categories.
+- JSON, JUnit and single-file HTML reports; baseline comparison with regression exit code.
+- Audio: WAV helpers, noise/gain/telephone perturbations, Sarvam bulbul TTS synthesis,
+  Sarvam saaras STT, oracle transcriber, clip manifest.
+- `iob` CLI: validate, ls, run, report, compare, demo, synth, perturb, serve-backend.

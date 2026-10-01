@@ -1,0 +1,58 @@
+# Copy this file to .github/workflows/ordering-accuracy.yml in your agent's repository.
+#
+# It runs the IndicOrderBench smoke suite (10 scenarios) against your agent on every pull
+# request and fails the check when ordering accuracy drops below the threshold or regresses
+# against the baseline results committed on main. Nightly, it runs the full pack with three
+# trials per scenario so flaky behaviour shows up as a pass^k drop rather than a single red run.
+name: ordering-accuracy
+on:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"   # nightly full evaluation
+jobs:
+  smoke:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv pip install --system indicorderbench
+      # Start your agent so it answers the HTTP turn protocol (see docs/adapters.md), or use a
+      # python: factory spec to run it in-process. Replace the line below with your own command.
+      - run: python my_agent/serve.py --port 8900 &
+      - run: |
+          iob run packs/starter \
+            --agent http:http://127.0.0.1:8900/iob \
+            --tag smoke --trials 1 \
+            --baseline baselines/smoke.json \
+            --fail-under 0.9 --max-regression 0.0 \
+            --out results/smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iob-smoke
+          path: results/smoke
+  nightly:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv pip install --system indicorderbench
+      - run: python my_agent/serve.py --port 8900 &
+      - run: |
+          iob run packs/starter \
+            --agent http:http://127.0.0.1:8900/iob \
+            --trials 3 \
+            --baseline baselines/full.json \
+            --fail-under 0.9 --max-regression 0.05 \
+            --out results/nightly
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iob-nightly
+          path: results/nightly
