@@ -11,7 +11,9 @@ packs/<name>/
   REVIEW.md          native-speaker review checklist
 ```
 
-Validate with `iob validate packs/<name>`. It lists every problem with file and field.
+Validate with `iob validate packs/<name>`. It lists every problem with file and field,
+including any clip named with an explicit `audio:` path that does not exist (`iob synth`
+creates those).
 
 ## Scenario file
 

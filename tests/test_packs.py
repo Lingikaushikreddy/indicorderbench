@@ -59,6 +59,51 @@ def test_clip_path_convention(tmp_path: Path):
     assert pack.clip_path("en_quantity_01", closing, Language.EN_IN) == default_clip
 
 
+def _with_explicit_audio(root: Path) -> Path:
+    """Give en_quantity_01 an explicit clip on its first turn and on a clarification reply."""
+    path = root / "scenarios" / "en_quantity_01.yaml"
+    doc = yaml.safe_load(path.read_text())
+    doc["caller"]["turns"][0]["audio"] = "clips/does_not_exist.wav"
+    doc["caller"]["clarifications"] = [
+        {
+            "id": "how_many",
+            "match": ["how many"],
+            "reply": {"text": "Two.", "audio": "clips/custom/two.wav"},
+        }
+    ]
+    path.write_text(yaml.safe_dump(doc, sort_keys=False))
+    return path
+
+
+def test_validate_reports_missing_explicit_clips(tmp_path: Path):
+    shutil.copytree(FIX, tmp_path / "p")
+    path = _with_explicit_audio(tmp_path / "p")
+    problems = validate_pack(tmp_path / "p")
+    assert f"{path}: caller.turns[0].audio: missing clip clips/does_not_exist.wav" in problems
+    assert (
+        f"{path}: caller.clarifications[0].reply.audio: missing clip clips/custom/two.wav"
+        in problems
+    )
+    assert len(problems) == 2
+    with pytest.raises(PackError) as e:
+        load_pack(tmp_path / "p")
+    assert any("missing clip clips/does_not_exist.wav" in p for p in e.value.problems)
+    for rel in ("clips/does_not_exist.wav", "clips/custom/two.wav"):
+        clip = tmp_path / "p" / rel
+        clip.parent.mkdir(parents=True, exist_ok=True)
+        clip.write_bytes(b"RIFF")
+    assert validate_pack(tmp_path / "p") == []
+    turn = load_pack(tmp_path / "p").scenario("en_quantity_01").caller.turns[0]
+    assert turn.audio == "clips/does_not_exist.wav"
+
+
+def test_load_pack_can_skip_the_clip_check_for_synthesis(tmp_path: Path):
+    shutil.copytree(FIX, tmp_path / "p")
+    _with_explicit_audio(tmp_path / "p")
+    pack = load_pack(tmp_path / "p", check_clips=False)
+    assert pack.scenario("en_quantity_01").caller.turns[0].audio == "clips/does_not_exist.wav"
+
+
 def test_validate_reports_unknown_item_and_option(tmp_path: Path):
     shutil.copytree(FIX, tmp_path / "p")
     bad = tmp_path / "p" / "scenarios" / "bad.yaml"

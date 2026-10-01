@@ -157,6 +157,24 @@ def test_synth_silence_provider_then_audio_run(tmp_path: Path):
     assert suite.metrics.n_infra_error == 0 and suite.run.modality == "audio"
 
 
+def test_synth_creates_explicitly_referenced_clips_then_validate_passes(tmp_path: Path):
+    """validate rejects a missing explicit clip, so synth must load the pack without it."""
+    import yaml
+
+    shutil.copytree(FIX, tmp_path / "p")
+    pack = tmp_path / "p"
+    path = pack / "scenarios" / "en_quantity_01.yaml"
+    doc = yaml.safe_load(path.read_text())
+    doc["caller"]["turns"][0]["audio"] = "clips/custom/two_wraps.wav"
+    path.write_text(yaml.safe_dump(doc, sort_keys=False))
+    code, out = run_cli("validate", str(pack))
+    assert code == 1 and "missing clip clips/custom/two_wraps.wav" in out
+    code, out = run_cli("synth", str(pack), "--provider", "silence")
+    assert code == 0, out
+    assert (pack / "clips" / "custom" / "two_wraps.wav").exists()
+    assert run_cli("validate", str(pack))[0] == 0
+
+
 def test_synth_sarvam_needs_api_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("SARVAM_API_KEY", raising=False)
     shutil.copytree(FIX, tmp_path / "p")

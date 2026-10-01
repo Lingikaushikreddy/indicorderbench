@@ -68,9 +68,9 @@ def _resolve_pack_dir(pack: str) -> Path:
     raise _fail(f"pack {pack!r} is neither a directory nor a bundled pack name (try 'starter')")
 
 
-def _load(pack: str) -> Pack:
+def _load(pack: str, check_clips: bool = True) -> Pack:
     try:
-        return load_pack(_resolve_pack_dir(pack))
+        return load_pack(_resolve_pack_dir(pack), check_clips=check_clips)
     except PackError as e:
         typer.echo(f"pack is not valid ({len(e.problems)} problem(s)):")
         for problem in e.problems:
@@ -464,7 +464,7 @@ def synth(
     """Generate caller audio clips and clips/manifest.json for a pack."""
     from indicorderbench.audio.tts import PlaceholderTTS, SarvamTTS, TTSProvider, synth_pack
 
-    loaded = _load(pack)
+    loaded = _load(pack, check_clips=False)  # synth creates the clips the pack references
     tts: TTSProvider
     if provider == "sarvam":
         key = os.environ.get("SARVAM_API_KEY")

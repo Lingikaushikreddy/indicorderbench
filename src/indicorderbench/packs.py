@@ -145,7 +145,26 @@ def _check_references(path: Path, scenario: Scenario, menu: Menu, problems: list
                         )
 
 
-def _load(root: Path) -> tuple[Pack | None, list[str]]:
+def _check_clips(path: Path, root: Path, scenario: Scenario, problems: list[str]) -> None:
+    """Every clip a scenario names explicitly with ``audio:`` must exist under the pack root."""
+    script = scenario.caller
+    referenced: list[tuple[str, CallerTurn]] = [
+        (f"caller.turns[{i}]", turn) for i, turn in enumerate(script.turns)
+    ]
+    referenced += [
+        (f"caller.clarifications[{i}].reply", rule.reply)
+        for i, rule in enumerate(script.clarifications)
+    ]
+    for name in ("closing", "confirm", "fallback", "nudge"):
+        override: CallerTurn | None = getattr(script, name)
+        if override is not None:
+            referenced.append((f"caller.{name}", override))
+    for loc, turn in referenced:
+        if turn.audio and not (root / turn.audio).exists():
+            problems.append(f"{path}: {loc}.audio: missing clip {turn.audio}")
+
+
+def _load(root: Path, check_clips: bool = True) -> tuple[Pack | None, list[str]]:
     problems: list[str] = []
     root = Path(root).resolve()
     manifest_path = root / "pack.yaml"
@@ -194,6 +213,8 @@ def _load(root: Path) -> tuple[Pack | None, list[str]]:
             )
         if menu is not None:
             _check_references(path, s, menu, problems)
+        if check_clips:
+            _check_clips(path, root, s, problems)
         scenarios.append(s)
     if not scenarios and not problems:
         problems.append(f"{root / 'scenarios'}: no scenarios found")
@@ -208,8 +229,13 @@ def validate_pack(root: Path) -> list[str]:
     return problems
 
 
-def load_pack(root: Path) -> Pack:
-    pack, problems = _load(Path(root))
+def load_pack(root: Path, check_clips: bool = True) -> Pack:
+    """Load a pack or raise :class:`PackError` listing every problem.
+
+    ``check_clips=False`` skips the check that explicitly referenced ``audio:`` clips exist,
+    for ``iob synth``, which creates them.
+    """
+    pack, problems = _load(Path(root), check_clips)
     if pack is None:
         raise PackError(problems or ["unknown pack error"])
     return pack
