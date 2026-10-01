@@ -191,7 +191,10 @@ class RuleBasedAgent:
                 return self._add(c.item_id, c.quantity, c.modifiers, do_backend=not skip)
             return self._m("unknown"), PLAIN
         line = self._cart[-1]
-        if c.item_id is not None and c.item_id != line.item_id:
+        named = [ln for ln in self._cart if ln.item_id == c.item_id] if c.item_id else []
+        if named:
+            line = named[-1]  # "change the chai to three" targets the chai line
+        elif c.item_id is not None:
             qty = c.quantity or line.quantity
             mods = self._merge(c.item_id, line.modifiers, c.modifiers)
             if not skip and line.backend_id is not None:
@@ -210,13 +213,14 @@ class RuleBasedAgent:
             line.quantity = c.quantity
         if merged is not None:
             line.modifiers = merged
-        if c.item_id is not None or (c.quantity is not None and c.modifiers):
-            qty = c.quantity or line.quantity
-            msg = self._m("swapped", qty=qty, name=name, mods=self._fmt_mods(c.modifiers))
+        if c.quantity is not None and c.modifiers:
+            msg = self._m("swapped", qty=c.quantity, name=name, mods=self._fmt_mods(c.modifiers))
         elif c.quantity is not None:
             msg = self._m("qty", name=name, qty=c.quantity)
-        else:
+        elif c.modifiers:
             msg = self._m("mods", name=name, mods=self._mod_names(c.modifiers))
+        else:
+            msg = self._m("swapped", qty=line.quantity, name=name, mods="")
         return msg, ACTION
 
     def _remove(self, c: Clause) -> tuple[str, str]:

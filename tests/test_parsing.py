@@ -355,3 +355,49 @@ def test_an_item_only_clause_after_add_is_a_second_add():
 def test_raw_is_the_normalised_fragment(language: str):
     (c,) = parse("Two paneer wraps!", language)
     assert c.raw == "two paneer wraps"
+
+
+# -- extensions needed by the starter pack -----------------------------------------
+
+
+def test_cancel_that_order_and_confirm_the_order_phrases():
+    assert brief(parse("Cancel that order please, I changed my mind.")) == [
+        (Intent.CANCEL_ORDER, None, None, [])
+    ]
+    assert brief(parse("Yes, confirm the order please.")) == [(Intent.CONFIRM, None, None, [])]
+    assert brief(parse("Perfect. Confirm it, please.")) == [(Intent.CONFIRM, None, None, [])]
+    assert brief(parse("Theek hai, confirm kar do.", "hi-en")) == [(Intent.CONFIRM, None, None, [])]
+
+
+def test_readback_with_a_number_word_inside():
+    assert brief(parse("Ek baar order repeat karo.", "hi-en")) == [
+        (Intent.READBACK, None, None, [])
+    ]
+    assert brief(parse("Hello? Sun rahe ho? Mera order ho gaya kya?", "hi-en")) == [
+        (Intent.READBACK, None, None, [])
+    ]
+    assert brief(parse("Hello? Are you still there? Did my order go through?")) == [
+        (Intent.READBACK, None, None, [])
+    ]
+
+
+def test_bare_modifier_with_hindi_particles_merges():
+    assert brief(parse("Ek chicken wrap, extra cheese aur extra paneer daal ke.", "hi-en")) == [
+        (Intent.ADD, "chicken_wrap", 1, ["extra_cheese", "extra_paneer"])
+    ]
+    assert brief(parse("A chicken wrap with extra cheese and extra paneer, please.")) == [
+        (Intent.ADD, "chicken_wrap", 1, ["extra_cheese", "extra_paneer"])
+    ]
+    assert brief(parse("Aur 3 samosa bhi daal dena.", "hi-en")) == [(Intent.ADD, "samosa", 3, [])]
+
+
+def test_correction_naming_an_item_keeps_its_item_and_quantity():
+    assert brief(parse("Wait, change the chai to three.")) == [
+        (Intent.CORRECT, "masala_chai", 3, [])
+    ]
+    assert brief(parse("Wait, chai teen kar do.", "hi-en")) == [
+        (Intent.CORRECT, "masala_chai", 3, [])
+    ]
+    assert brief(parse("Sorry, veg biryani ki jagah chicken wrap kar do.", "hi-en")) == [
+        (Intent.CORRECT, "chicken_wrap", None, [])
+    ]

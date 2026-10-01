@@ -201,9 +201,9 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
     item_id = _pick_item(fragment, items)
     item_start = items[0][0] if items else None
     quantity = _quantity(masked, language, item_start)
+    if item_id is None and _READBACK_RE.search(fragment):
+        return Clause(Intent.READBACK, raw=fragment)
     if item_id is None and not options and quantity is None:
-        if _READBACK_RE.search(fragment):
-            return Clause(Intent.READBACK, raw=fragment)
         if _CLOSING_RE.search(fragment):
             return Clause(Intent.CLOSING, raw=fragment)
         if _is_confirm(fragment):

@@ -318,3 +318,19 @@ def test_audio_only_without_transcriber_is_unknown_not_a_crash():
     assert reply.text == "Sorry, I didn't catch that. Which item would you like?"
     assert a.backend.snapshot().cart == [] and a.backend.snapshot().trace == []
     assert a.handle(utt(None)).text == reply.text
+
+
+def test_correction_naming_an_earlier_line_updates_that_line():
+    a = agent()
+    replies = drive(a, ["Two samosas and one chai.", "Wait, change the samosas to three."])
+    assert replies[1] == "Changed Samosa to 3. Anything else?"
+    assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [
+        ("samosa", 3),
+        ("masala_chai", 1),
+    ]
+    b = agent()
+    drive(b, ["One paneer wrap and one chai.", "Actually make the paneer wrap spicy."])
+    assert [(c.item_id, set(c.modifiers)) for c in b.backend.snapshot().cart] == [
+        ("paneer_wrap", {"spicy"}),
+        ("masala_chai", set()),
+    ]
