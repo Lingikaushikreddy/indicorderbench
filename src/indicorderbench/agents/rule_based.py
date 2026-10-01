@@ -259,6 +259,8 @@ class RuleBasedAgent:
             self.backend.submit_order()
             self._placed, self._cart = self._cart, []
             return self._m("placed", lines=self._fmt_lines(self._placed)), TERMINAL_REPLY
+        if "ignore_cancellation" in self.bugs and self.backend.snapshot().cart:
+            self.backend.submit_order()  # the cart the agent "cancelled" is still there
         if self._placed:
             if "double_submit" in self.bugs:
                 for order in self.backend.active_orders()[-1:]:

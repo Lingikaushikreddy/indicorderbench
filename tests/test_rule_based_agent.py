@@ -334,3 +334,11 @@ def test_correction_naming_an_earlier_line_updates_that_line():
         ("paneer_wrap", {"spicy"}),
         ("masala_chai", set()),
     ]
+
+
+def test_bug_ignore_cancellation_submits_a_cancelled_cart_at_closing():
+    flow = ["Two samosas and one chai.", "Actually, cancel the whole order.", "That's all."]
+    correct, buggy = agent(), agent({"ignore_cancellation"})
+    assert drive(correct, flow) == drive(buggy, flow)
+    assert correct.backend.snapshot().orders == []
+    assert lines(buggy.backend.snapshot()) == [("masala_chai", 1, set()), ("samosa", 2, set())]
