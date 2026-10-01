@@ -72,17 +72,22 @@ class Pack:
         """Resolve a turn's audio clip, or None when no clip exists.
 
         An explicit ``audio`` field is relative to the pack root. Otherwise scripted and
-        clarification turns live at ``clips/<scenario>/<turn id>.wav`` and the language
-        defaults at ``clips/_defaults/<language>/<turn id>.wav``.
+        clarification turns live at ``clips/<scenario>/<turn id>.wav``, and the language
+        defaults (closing, confirm, fallback, nudge and the pack-wide clarification replies)
+        at ``clips/_defaults/<language>/<turn id>.wav``, which is also the fallback for any
+        turn id without a scenario-specific clip.
         """
         if turn.audio:
             p = self.root / turn.audio
             return p if p.exists() else None
+        shared = self.root / "clips" / "_defaults" / language.value / f"{turn.id}.wav"
         if turn.id in DEFAULT_TURN_IDS:
-            p = self.root / "clips" / "_defaults" / language.value / f"{turn.id}.wav"
-        else:
-            p = self.root / "clips" / scenario_id / f"{turn.id}.wav"
-        return p if p.exists() else None
+            return shared if shared.exists() else None
+        specific = self.root / "clips" / scenario_id / f"{turn.id}.wav"
+        if specific.exists():
+            return specific
+        # Pack-default clarification replies are synthesised once per language.
+        return shared if shared.exists() else None
 
     def content_hash(self) -> str:
         h = hashlib.sha256()

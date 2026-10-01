@@ -117,3 +117,21 @@ def test_missing_manifest_and_missing_language_defaults(tmp_path: Path):
 
 def test_validate_ok_pack_returns_empty_list():
     assert validate_pack(FIX) == []
+
+
+def test_clip_path_falls_back_to_language_defaults_for_shared_clarifications(tmp_path: Path):
+    """Pack-default clarification replies are synthesised once per language, so a reply turn
+    without a scenario-specific clip resolves under clips/_defaults/<language>/."""
+    shutil.copytree(FIX, tmp_path / "p")
+    pack = load_pack(tmp_path / "p")
+    reply = CallerTurn(id="c_anything_else", text="No, that's all.")
+    assert pack.clip_path("en_quantity_01", reply, Language.EN_IN) is None
+    shared = tmp_path / "p" / "clips" / "_defaults" / "en-IN" / "c_anything_else.wav"
+    shared.parent.mkdir(parents=True)
+    shared.write_bytes(b"RIFF")
+    assert pack.clip_path("en_quantity_01", reply, Language.EN_IN) == shared
+    # a scenario-specific clip with the same turn id wins over the shared one
+    specific = tmp_path / "p" / "clips" / "en_quantity_01" / "c_anything_else.wav"
+    specific.parent.mkdir(parents=True)
+    specific.write_bytes(b"RIFF")
+    assert pack.clip_path("en_quantity_01", reply, Language.EN_IN) == specific
