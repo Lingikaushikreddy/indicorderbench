@@ -32,7 +32,10 @@ audio = ["numpy>=1.26", "soundfile>=0.12"]
 iob = "indicorderbench.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/Lingikaushikreddy/indicorderbench"
+Homepage = "https://github.com/Lingikaushikreddy/-Indicorderbench"
+Repository = "https://github.com/Lingikaushikreddy/-Indicorderbench"
+Issues = "https://github.com/Lingikaushikreddy/-Indicorderbench/issues"
+Changelog = "https://github.com/Lingikaushikreddy/-Indicorderbench/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling>=1.25"]

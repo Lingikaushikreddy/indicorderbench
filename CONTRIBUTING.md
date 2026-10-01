@@ -17,7 +17,7 @@ the most useful ones right now.
 ## Development setup
 
 ```bash
-git clone https://github.com/Lingikaushikreddy/indicorderbench
+git clone https://github.com/Lingikaushikreddy/-Indicorderbench.git indicorderbench
 cd indicorderbench
 uv sync --all-extras --dev
 uv run pytest -q
