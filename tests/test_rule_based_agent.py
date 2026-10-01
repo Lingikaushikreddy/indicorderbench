@@ -1,0 +1,320 @@
+from pathlib import Path
+
+from indicorderbench.adapters.inprocess import InProcessAdapter
+from indicorderbench.adapters.protocol import AgentReply, CallerUtterance, Modality, SessionInfo
+from indicorderbench.agents.rule_based import (
+    BUGS,
+    RuleBasedAgent,
+    Transcriber,
+    make_factory,
+    parse_agent_spec,
+)
+from indicorderbench.backend.state import BackendError, OrderBackend
+from indicorderbench.schemas.results import BackendSnapshot
+from tests.test_parsing import make_test_menu
+
+DEMO = [
+    "Two paneer wraps... actually make it one. No onion. And one mango lassi.",
+    "That's all",
+]
+
+
+def utt(text: str | None, language: str = "en-IN", audio: bytes | None = None) -> CallerUtterance:
+    return CallerUtterance(
+        turn_id="t", text=text, audio_path=None, audio_bytes=audio, language=language
+    )
+
+
+def agent(bugs: set[str] | None = None, language: str = "en-IN") -> RuleBasedAgent:
+    return RuleBasedAgent(OrderBackend(make_test_menu()), language, frozenset(bugs or set()))
+
+
+def drive(a: RuleBasedAgent, texts: list[str], language: str = "en-IN") -> list[str]:
+    return [a.handle(utt(t, language)).text for t in texts]
+
+
+def lines(snap: BackendSnapshot, order_index: int = 0) -> list[tuple[str, int, set[str]]]:
+    active = snap.active_orders()
+    return sorted((ln.item_id, ln.quantity, set(ln.modifiers)) for ln in active[order_index].lines)
+
+
+# -- correct agent -----------------------------------------------------------------
+
+
+def test_demo_flow_commits_corrected_order():
+    a = agent()
+    replies = drive(a, DEMO)
+    snap = a.backend.snapshot()
+    assert len(snap.active_orders()) == 1 and snap.cart == []
+    assert lines(snap) == [("mango_lassi", 1, set()), ("paneer_wrap", 1, {"no_onion"})]
+    assert replies[0] == (
+        "Added 2 Paneer Wrap. Changed Paneer Wrap to 1. Updated Paneer Wrap: No onion. "
+        "Added 1 Mango Lassi. Anything else?"
+    )
+    assert (
+        replies[1] == "Your order: 1 Paneer Wrap, No onion; 1 Mango Lassi. Order placed, thank you!"
+    )
+    names = [c.name for c in snap.trace]
+    assert names == ["add_item", "update_line", "update_line", "add_item", "submit_order"]
+
+
+def test_hinglish_flow_and_replies():
+    a = agent(language="hi-en")
+    replies = drive(
+        a, ["Do paneer wrap dena, bina pyaaz. Aur ek mango lassi.", "Bas itna hi."], "hi-en"
+    )
+    assert (
+        replies[0] == "2 Paneer Wrap, No onion add kar diya. 1 Mango Lassi add kar diya. Aur kuch?"
+    )
+    assert replies[1] == (
+        "Aapka order: 2 Paneer Wrap, No onion; 1 Mango Lassi. Order place ho gaya, shukriya!"
+    )
+    assert lines(a.backend.snapshot()) == [
+        ("mango_lassi", 1, set()),
+        ("paneer_wrap", 2, {"no_onion"}),
+    ]
+
+
+def test_second_closing_after_placement_does_not_resubmit():
+    a = agent()
+    replies = drive(a, [*DEMO, "Yes, that's it. Please place the order."])
+    assert replies[2] == "Your order is already placed. Thank you!"
+    assert len(a.backend.snapshot().active_orders()) == 1
+
+
+def test_closing_with_nothing_asks_and_after_cancel_says_goodbye():
+    a = agent()
+    assert drive(a, ["That's all."]) == ["Nothing in your cart yet. What would you like?"]
+    drive(a, ["One mango lassi, that's all.", "Cancel the order."])
+    snap = a.backend.snapshot()
+    assert snap.active_orders() == [] and len(snap.orders) == 1
+    assert drive(a, ["No, that's all."]) == ["Your order has been cancelled. Thank you, goodbye!"]
+    b = agent(language="hi-en")
+    drive(b, ["Ek chai.", "Poora order cancel kar do.", "Bas."], "hi-en")
+    assert b.backend.snapshot().cart == [] and b.backend.snapshot().orders == []
+    assert drive(b, ["Bas."], "hi-en") == ["Aapka order cancel ho gaya hai. Shukriya, namaste!"]
+
+
+def test_item_swap_keeps_quantity_unless_given():
+    a = agent()
+    drive(a, ["Two paneer wraps, no onion.", "Actually make them chicken wraps."])
+    cart = a.backend.snapshot().cart
+    assert [(c.item_id, c.quantity, set(c.modifiers)) for c in cart] == [
+        ("chicken_wrap", 2, {"no_onion"})
+    ]
+    b = agent()
+    replies = drive(b, ["Two paneer wraps.", "Actually make it a chicken wrap."])
+    assert replies[1] == "Changed that to 1 Chicken Wrap. Anything else?"
+    assert [(c.item_id, c.quantity) for c in b.backend.snapshot().cart] == [("chicken_wrap", 1)]
+
+
+def test_modifier_correction_replaces_same_exclusive_group():
+    a = agent()
+    drive(a, ["One chicken wrap, extra spicy, extra cheese.", "Actually make it mild."])
+    (line,) = a.backend.snapshot().cart
+    assert set(line.modifiers) == {"mild", "extra_cheese"}
+
+
+def test_remove_by_item_and_remove_last():
+    a = agent()
+    replies = drive(
+        a,
+        ["Two samosas and one chai and one lassi.", "Remove the lassi.", "Actually, cancel that."],
+    )
+    assert replies[1] == "Removed Mango Lassi. Anything else?"
+    assert replies[2] == "Removed Masala Chai. Anything else?"
+    assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [("samosa", 2)]
+    b = agent()
+    drive(b, ["Three samosas.", "Remove one samosa."])
+    assert [(c.item_id, c.quantity) for c in b.backend.snapshot().cart] == [("samosa", 2)]
+
+
+def test_readback_requests():
+    a = agent()
+    replies = drive(
+        a, ["One chai.", "Can you repeat that?", "That's all.", "Did my order go through?"]
+    )
+    assert replies[1] == "So far: 1 Masala Chai. Anything else?"
+    assert replies[3] == "Your order: 1 Masala Chai. It has been placed."
+    assert len(a.backend.snapshot().active_orders()) == 1
+
+
+def test_unknown_and_backend_error_replies_never_raise():
+    a = agent()
+    assert drive(a, ["A plate of chips please."]) == [
+        "Sorry, I didn't catch that. Which item would you like?"
+    ]
+    assert drive(a, ["Make it two."]) == ["Sorry, I didn't catch that. Which item would you like?"]
+    assert drive(a, ["Remove the lassi."]) == [
+        "Sorry, I couldn't do that: Mango Lassi is not in your cart."
+    ]
+    # no_onion does not apply to a lassi -> BackendError from add_item -> apology
+    (reply,) = drive(a, ["One mango lassi, no onion."])
+    assert reply.startswith("Sorry, I couldn't do that: ")
+    assert a.backend.snapshot().cart == []
+    b = agent(language="hi-en")
+    assert drive(b, ["Kuch bhi."], "hi-en") == [
+        "Maaf kijiye, samajh nahi aaya. Konsa item chahiye?"
+    ]
+
+
+def test_backend_error_from_a_raising_backend_becomes_apology():
+    class Boom(OrderBackend):
+        def submit_order(self):  # type: ignore[override]
+            raise BackendError("down", "kitchen offline")
+
+    a = RuleBasedAgent(Boom(make_test_menu()), "en-IN")
+    assert drive(a, ["One chai.", "That's all."])[1] == "Sorry, I couldn't do that: kitchen offline"
+
+
+# -- bugs ------------------------------------------------------------------------
+
+
+def test_bugs_tuple():
+    assert BUGS == (
+        "ignore_corrections",
+        "drop_modifiers",
+        "double_submit",
+        "ignore_cancellation",
+        "quantity_default_one",
+    )
+
+
+def test_bug_ignore_corrections_keeps_first_values_but_replies_the_same():
+    correct, buggy = agent(), agent({"ignore_corrections"})
+    assert drive(correct, DEMO) == drive(buggy, DEMO)
+    assert lines(buggy.backend.snapshot()) == [("mango_lassi", 1, set()), ("paneer_wrap", 2, set())]
+    assert [c.name for c in buggy.backend.snapshot().trace] == [
+        "add_item",
+        "add_item",
+        "submit_order",
+    ]
+
+
+def test_bug_drop_modifiers_omits_modifiers_from_every_call():
+    correct, buggy = agent(), agent({"drop_modifiers"})
+    assert drive(correct, DEMO) == drive(buggy, DEMO)
+    assert lines(buggy.backend.snapshot()) == [("mango_lassi", 1, set()), ("paneer_wrap", 1, set())]
+    assert all(c.args.get("modifiers") in ([], None) for c in buggy.backend.snapshot().trace)
+
+
+def test_bug_double_submit_resubmits_on_a_second_closing():
+    flow = [*DEMO, "Yes, that's it."]
+    correct, buggy = agent(), agent({"double_submit"})
+    assert drive(correct, flow) == drive(buggy, flow)
+    snap = buggy.backend.snapshot()
+    assert len(snap.active_orders()) == 2 and lines(snap, 0) == lines(snap, 1)
+    assert len(correct.backend.snapshot().active_orders()) == 1
+
+
+def test_bug_ignore_cancellation_leaves_order_active():
+    flow = [*DEMO, "Actually, cancel the order."]
+    correct, buggy = agent(), agent({"ignore_cancellation"})
+    assert drive(correct, flow) == drive(buggy, flow)
+    assert correct.backend.snapshot().active_orders() == []
+    assert len(buggy.backend.snapshot().active_orders()) == 1
+    removed = agent({"ignore_cancellation"})
+    drive(removed, ["Two samosas and one chai.", "Remove the chai.", "That's all."])
+    assert lines(removed.backend.snapshot()) == [("masala_chai", 1, set()), ("samosa", 2, set())]
+
+
+def test_bug_quantity_default_one_ignores_spoken_quantity():
+    flow = ["Two paneer wraps and one mango lassi.", "That's all"]
+    correct, buggy = agent(), agent({"quantity_default_one"})
+    assert drive(correct, flow) == drive(buggy, flow)
+    assert lines(buggy.backend.snapshot()) == [("mango_lassi", 1, set()), ("paneer_wrap", 1, set())]
+    assert lines(correct.backend.snapshot()) == [
+        ("mango_lassi", 1, set()),
+        ("paneer_wrap", 2, set()),
+    ]
+    corrected = agent({"quantity_default_one"})
+    drive(corrected, ["Three samosas.", "Actually make it two.", "That's all"])
+    assert lines(corrected.backend.snapshot()) == [("samosa", 2, set())]
+
+
+# -- spec grammar and factory -----------------------------------------------------------
+
+
+def test_parse_agent_spec():
+    assert parse_agent_spec("builtin:correct") == frozenset()
+    assert parse_agent_spec("builtin:buggy") == frozenset(BUGS)
+    assert parse_agent_spec("builtin:buggy:drop_modifiers,double_submit") == frozenset(
+        {"drop_modifiers", "double_submit"}
+    )
+    assert parse_agent_spec(" builtin:buggy: drop_modifiers , double_submit ") == frozenset(
+        {"drop_modifiers", "double_submit"}
+    )
+    assert parse_agent_spec("builtin:buggy:nonsense") is None
+    assert parse_agent_spec("builtin:buggy:") is None
+    assert parse_agent_spec("http://localhost:8080") is None
+    assert parse_agent_spec("builtin:other") is None
+
+
+async def test_make_factory_through_inprocess_adapter():
+    backend = OrderBackend(make_test_menu())
+    session = SessionInfo(
+        scenario_id="s",
+        trial=1,
+        language="hi-en",
+        modality=Modality.TEXT,
+        backend=backend,
+        session_id="x",
+    )
+    adapter = InProcessAdapter(make_factory())
+    await adapter.start(session)
+    reply = await adapter.respond(utt("Do samosa.", "hi-en"))
+    assert isinstance(reply, AgentReply) and reply.text == "2 Samosa add kar diya. Aur kuch?"
+    reply = await adapter.respond(utt("Bas.", "hi-en"))
+    assert reply.text.endswith("Order place ho gaya, shukriya!")
+    await adapter.stop()
+    assert len(backend.snapshot().active_orders()) == 1
+    buggy = InProcessAdapter(make_factory(frozenset({"quantity_default_one"})))
+    backend2 = OrderBackend(make_test_menu())
+    await buggy.start(
+        SessionInfo(
+            scenario_id="s",
+            trial=1,
+            language="en-IN",
+            modality=Modality.TEXT,
+            backend=backend2,
+            session_id="y",
+        )
+    )
+    await buggy.respond(utt("Two samosas."))
+    assert [c.quantity for c in backend2.snapshot().cart] == [1]
+
+
+# -- audio ---------------------------------------------------------------------------
+
+
+class FakeTranscriber:
+    def __init__(self) -> None:
+        self.calls: list[tuple[bytes, str]] = []
+
+    def transcribe(self, audio: bytes, language: str) -> str:
+        self.calls.append((audio, language))
+        return "two samosas"
+
+
+def test_audio_only_utterance_uses_transcriber(tmp_path: Path):
+    t = FakeTranscriber()
+    assert isinstance(t, Transcriber)
+    a = RuleBasedAgent(OrderBackend(make_test_menu()), "en-IN", transcriber=t)
+    reply = a.handle(utt(None, audio=b"RIFF"))
+    assert reply.text == "Added 2 Samosa. Anything else?" and t.calls == [(b"RIFF", "en-IN")]
+    clip = tmp_path / "c.wav"
+    clip.write_bytes(b"RIFFpath")
+    a.handle(CallerUtterance("t", None, clip, None, "en-IN"))
+    assert t.calls[-1] == (b"RIFFpath", "en-IN")
+    # text wins over audio when both are present
+    a.handle(utt("one chai", audio=b"RIFF"))
+    assert len(t.calls) == 2
+    assert [c.item_id for c in a.backend.snapshot().cart] == ["samosa", "samosa", "masala_chai"]
+
+
+def test_audio_only_without_transcriber_is_unknown_not_a_crash():
+    a = agent()
+    reply = a.handle(utt(None, audio=b"RIFF"))
+    assert reply.text == "Sorry, I didn't catch that. Which item would you like?"
+    assert a.backend.snapshot().cart == [] and a.backend.snapshot().trace == []
+    assert a.handle(utt(None)).text == reply.text
