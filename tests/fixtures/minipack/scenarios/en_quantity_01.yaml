@@ -1,0 +1,14 @@
+id: en_quantity_01
+title: Two wraps
+language: en-IN
+category: quantity
+menu: mini
+tags: [smoke]
+caller:
+  turns:
+    - text: "Two paneer wraps please."
+expected:
+  - id: two_wraps
+    orders:
+      - lines:
+          - {item_id: paneer_wrap, quantity: 2}

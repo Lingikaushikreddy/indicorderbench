@@ -1,0 +1,24 @@
+id: minipack
+name: Mini pack for tests
+version: "0.0.1"
+menu: menu.yaml
+defaults:
+  caller:
+    en-IN:
+      closing: {text: "That's all."}
+      confirm: {text: "Yes, place it."}
+      fallback: {text: "Yes, that's right."}
+      nudge: {text: "Please place the order."}
+      confirm_patterns: ["shall i place", "place the order\\?", "confirm"]
+      goodbye_patterns: ["order placed", "order is placed", "already placed"]
+      question_patterns: ["which", "how many", "what "]
+      clarifications: []
+    hi-en:
+      closing: {text: "Bas itna hi."}
+      confirm: {text: "Haan, order kar do."}
+      fallback: {text: "Haan, theek hai."}
+      nudge: {text: "Order place kar do."}
+      confirm_patterns: ["order kar d(oo|u)n", "confirm"]
+      goodbye_patterns: ["order place ho gaya", "pehle se place"]
+      question_patterns: ["kitne", "konsa", "kaunsa", "kya"]
+      clarifications: []

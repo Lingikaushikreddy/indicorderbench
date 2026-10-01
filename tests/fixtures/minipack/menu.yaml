@@ -1,0 +1,13 @@
+id: mini
+name: Mini menu
+modifier_groups:
+  - id: onion
+    name: Onion
+    exclusive: true
+    default: with_onion
+    options:
+      - {id: with_onion, name: With onion, aliases: [with onion]}
+      - {id: no_onion, name: No onion, aliases: [no onion, without onion, bina pyaaz]}
+items:
+  - {id: paneer_wrap, name: Paneer Wrap, aliases: [paneer wrap, paneer wraps], price: 180, modifier_groups: [onion]}
+  - {id: mango_lassi, name: Mango Lassi, aliases: [mango lassi], price: 90}

@@ -1,0 +1,13 @@
+id: en_cancellation_01
+title: Cancel after ordering
+language: en-IN
+category: cancellation
+menu: mini
+tags: [smoke]
+caller:
+  turns:
+    - text: "One mango lassi."
+    - text: "Actually cancel the order."
+expected:
+  - id: nothing
+    orders: []
