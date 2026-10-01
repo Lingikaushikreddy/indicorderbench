@@ -17,6 +17,10 @@ caller:
     - id: t3
       text: "Theek hai, order place kar do."
   clarifications:
+    - id: confirm_first
+      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      reply: {text: "Haan, order place kar do."}
+      max_uses: 1
     - id: teekha
       match: ["kitna teekha", "teekha\\?", "spice level\\?"]
       reply: {text: "Medium."}

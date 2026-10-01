@@ -19,6 +19,10 @@ caller:
     - id: t4
       text: "Perfect. Confirm it, please."
   clarifications:
+    - id: confirm_first
+      match: ["shall i (place|confirm)", "place (the|your) order\\?", "should i place"]
+      reply: {text: "Yes, please place the order."}
+      max_uses: 1
     - id: how_many_samosas
       match: ["how many samosa", "samosas\\?"]
       reply: {text: "Two samosas."}

@@ -17,6 +17,10 @@ caller:
     - id: t3
       text: "Okay, please place it then."
   clarifications:
+    - id: confirm_first
+      match: ["shall i (place|confirm)", "place (the|your) order\\?", "should i place"]
+      reply: {text: "Yes, please place the order."}
+      max_uses: 1
     - id: spice
       match: ["how spicy", "spice level\\?", "mild, medium or spicy"]
       reply: {text: "Medium."}

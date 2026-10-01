@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from indicorderbench.adapters.inprocess import InProcessAdapter
 from indicorderbench.adapters.protocol import AgentReply, CallerUtterance, Modality, SessionInfo
 from indicorderbench.agents.rule_based import (
@@ -244,10 +246,23 @@ def test_parse_agent_spec():
     assert parse_agent_spec(" builtin:buggy: drop_modifiers , double_submit ") == frozenset(
         {"drop_modifiers", "double_submit"}
     )
-    assert parse_agent_spec("builtin:buggy:nonsense") is None
-    assert parse_agent_spec("builtin:buggy:") is None
+    with pytest.raises(ValueError, match="nonsense"):
+        parse_agent_spec("builtin:buggy:nonsense")
+    with pytest.raises(ValueError, match="quantity_default_one"):  # names the known bugs
+        parse_agent_spec("builtin:buggy:nonsense")
+    with pytest.raises(ValueError):
+        parse_agent_spec("builtin:buggy:")
+    with pytest.raises(ValueError):
+        parse_agent_spec("builtin:other")
     assert parse_agent_spec("http://localhost:8080") is None
-    assert parse_agent_spec("builtin:other") is None
+    assert parse_agent_spec("openai:gpt") is None
+
+
+def test_unknown_bug_names_are_rejected():
+    with pytest.raises(ValueError, match="nope"):
+        RuleBasedAgent(OrderBackend(make_test_menu()), "en-IN", frozenset({"nope"}))
+    with pytest.raises(ValueError, match="double_submit"):
+        make_factory(frozenset({"nope", "drop_modifiers"}))
 
 
 async def test_make_factory_through_inprocess_adapter():
@@ -342,3 +357,45 @@ def test_bug_ignore_cancellation_submits_a_cancelled_cart_at_closing():
     assert drive(correct, flow) == drive(buggy, flow)
     assert correct.backend.snapshot().orders == []
     assert lines(buggy.backend.snapshot()) == [("masala_chai", 1, set()), ("samosa", 2, set())]
+
+
+# -- review fixes ------------------------------------------------------------------
+
+
+def test_negated_modifier_corrects_the_last_line_instead_of_removing_it():
+    a = agent(language="hi-en")
+    drive(a, ["Ek paneer wrap aur ek chai.", "Teekha nahi chahiye."], "hi-en")
+    assert [c.item_id for c in a.backend.snapshot().cart] == ["paneer_wrap", "masala_chai"]
+    b = agent(language="hi-en")
+    replies = drive(b, ["Ek chicken wrap zyada teekha.", "Teekha nahi chahiye."], "hi-en")
+    assert replies[1] == "Chicken Wrap se Spicy hata diya. Aur kuch?"
+    assert [set(c.modifiers) for c in b.backend.snapshot().cart] == [set()]
+    c = agent()
+    replies = drive(c, ["One chicken wrap, extra spicy, extra cheese.", "Remove the extra cheese."])
+    assert replies[1] == "Removed Extra cheese from Chicken Wrap. Anything else?"
+    assert [set(ln.modifiers) for ln in c.backend.snapshot().cart] == [{"spicy"}]
+
+
+def test_swap_adds_before_removing_and_drops_inapplicable_options():
+    a = agent()
+    replies = drive(a, ["One paneer wrap.", "Actually make it a mango lassi with no onion."])
+    assert replies[1] == (
+        "Changed that to 1 Mango Lassi. No onion does not apply to Mango Lassi. Anything else?"
+    )
+    assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [("mango_lassi", 1)]
+    assert [t.name for t in a.backend.snapshot().trace] == ["add_item", "add_item", "remove_line"]
+    assert drive(a, ["That's all."]) == ["Your order: 1 Mango Lassi. Order placed, thank you!"]
+    assert len(a.backend.snapshot().active_orders()) == 1
+
+
+def test_article_in_a_modifier_correction_keeps_the_quantity():
+    a = agent()
+    drive(a, ["Two paneer wraps.", "Actually make them a bit less spicy."])
+    assert [(c.quantity, set(c.modifiers)) for c in a.backend.snapshot().cart] == [(2, {"mild"})]
+
+
+def test_rehne_do_removes_the_named_line():
+    a = agent(language="hi-en")
+    replies = drive(a, ["Ek chai aur do samosa.", "Chai rehne do."], "hi-en")
+    assert replies[1] == "Masala Chai hata diya. Aur kuch?"
+    assert [(c.item_id, c.quantity) for c in a.backend.snapshot().cart] == [("samosa", 2)]

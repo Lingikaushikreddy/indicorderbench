@@ -15,6 +15,10 @@ caller:
     - id: t2
       text: "Haan, confirm kar do."
   clarifications:
+    - id: confirm_first
+      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      reply: {text: "Haan, order place kar do."}
+      max_uses: 1
     - id: cheeni
       match: ["cheeni\\?", "sugar\\?", "kitni cheeni"]
       reply: {text: "Normal cheeni."}

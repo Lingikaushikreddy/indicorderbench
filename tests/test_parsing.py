@@ -401,3 +401,58 @@ def test_correction_naming_an_item_keeps_its_item_and_quantity():
     assert brief(parse("Sorry, veg biryani ki jagah chicken wrap kar do.", "hi-en")) == [
         (Intent.CORRECT, "chicken_wrap", None, [])
     ]
+
+
+# -- review fixes ------------------------------------------------------------------
+
+
+def test_connectors_split_after_number_words_except_ek_aur():
+    assert brief(parse("Ek chai do aur do samose", "hi-en")) == [
+        (Intent.ADD, "masala_chai", 1, []),
+        (Intent.ADD, "samosa", 2, []),
+    ]
+    assert brief(parse("Chai do aur samosa bhi", "hi-en")) == [
+        (Intent.ADD, "masala_chai", None, []),
+        (Intent.ADD, "samosa", None, []),
+    ]
+    assert brief(parse("Lassi teen aur samosa do", "hi-en")) == [
+        (Intent.ADD, "mango_lassi", 3, []),
+        (Intent.ADD, "samosa", None, []),
+    ]
+    assert brief(parse("One paneer wrap, make it two and a mango lassi")) == [
+        (Intent.ADD, "paneer_wrap", 1, []),
+        (Intent.CORRECT, None, 2, []),
+        (Intent.ADD, "mango_lassi", 1, []),
+    ]
+    assert brief(parse("Ek aur lassi", "hi-en")) == [(Intent.ADD, "mango_lassi", 1, [])]
+
+
+def test_negated_modifier_is_a_correction_not_a_removal():
+    (c,) = parse("Teekha nahi chahiye.", "hi-en")
+    assert (c.intent, c.item_id, c.modifiers, c.negated) == (Intent.CORRECT, None, [], ["spicy"])
+    (c,) = parse("Remove the extra cheese.")
+    assert (c.intent, c.item_id, c.negated) == (Intent.CORRECT, None, ["extra_cheese"])
+    assert brief(parse("Pyaaz nahi chahiye.", "hi-en")) == [
+        (Intent.CORRECT, None, None, ["no_onion"])
+    ]
+    assert brief(parse("Lassi nahi chahiye.", "hi-en")) == [
+        (Intent.REMOVE, "mango_lassi", None, [])
+    ]
+
+
+def test_article_counts_as_one_only_directly_before_an_item():
+    assert brief(parse("actually make them a bit less spicy")) == [
+        (Intent.CORRECT, None, None, ["mild"])
+    ]
+    assert brief(parse("a paneer wrap")) == [(Intent.ADD, "paneer_wrap", 1, [])]
+    assert brief(parse("a spicy chicken wrap")) == [(Intent.ADD, "chicken_wrap", 1, ["spicy"])]
+    assert brief(parse("an extra spicy chicken wrap")) == [
+        (Intent.ADD, "chicken_wrap", 1, ["spicy"])
+    ]
+    assert brief(parse("make it a chicken wrap")) == [(Intent.CORRECT, "chicken_wrap", 1, [])]
+
+
+def test_rehne_do_is_a_removal():
+    assert "rehne do" in lexicon.REMOVE_MARKERS and "rehne do" not in lexicon.CORRECTION_MARKERS
+    assert brief(parse("chai rehne do", "hi-en")) == [(Intent.REMOVE, "masala_chai", None, [])]
+    assert brief(parse("rehne do", "hi-en")) == [(Intent.REMOVE, None, None, [])]

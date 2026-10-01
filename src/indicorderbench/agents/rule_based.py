@@ -58,6 +58,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "error": "Sorry, I couldn't do that: {message}",
         "not_in_cart": "{name} is not in your cart.",
         "nothing_to_remove": "there is nothing to remove.",
+        "removed_mods": "Removed {mods} from {name}.",
+        "not_applicable": "{mods} does not apply to {name}.",
     },
     "hi-en": {
         "added": "{qty} {name}{mods} add kar diya.",
@@ -77,8 +79,17 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "error": "Maaf kijiye, yeh nahi ho paya: {message}",
         "not_in_cart": "{name} cart mein nahi hai.",
         "nothing_to_remove": "hataane ke liye kuch nahi hai.",
+        "removed_mods": "{name} se {mods} hata diya.",
+        "not_applicable": "{mods} {name} pe lagu nahi hota.",
     },
 }
+
+
+def _check_bugs(bugs: frozenset[str]) -> frozenset[str]:
+    unknown = sorted(set(bugs) - set(BUGS))
+    if unknown:
+        raise ValueError(f"unknown bug(s): {', '.join(unknown)}; known bugs: {', '.join(BUGS)}")
+    return frozenset(bugs)
 
 
 @dataclass
@@ -108,7 +119,7 @@ class RuleBasedAgent:
     ) -> None:
         self.backend = backend
         self.language = language if language in _MESSAGES else "en-IN"
-        self.bugs = frozenset(bugs)
+        self.bugs = _check_bugs(bugs)
         self.transcriber = transcriber
         self._cart: list[_Line] = []
         self._placed: list[_Line] | None = None
@@ -196,32 +207,41 @@ class RuleBasedAgent:
             line = named[-1]  # "change the chai to three" targets the chai line
         elif c.item_id is not None:
             qty = c.quantity or line.quantity
-            mods = self._merge(c.item_id, line.modifiers, c.modifiers)
+            kept, dropped = self._applicable(c.item_id, c.modifiers)
+            mods = self._merge(c.item_id, line.modifiers, kept, c.negated)
             if not skip and line.backend_id is not None:
+                # add first, then remove, so a refused add leaves the old line in place
+                new_id = self._add_item(c.item_id, qty, mods).line_id
                 self.backend.remove_line(line.backend_id)
-                line.backend_id = self._add_item(c.item_id, qty, mods).line_id
+                line.backend_id = new_id
             line.item_id, line.quantity, line.modifiers = c.item_id, qty, mods
-            msg = self._m(
-                "swapped", qty=qty, name=self._name(c.item_id), mods=self._fmt_mods(c.modifiers)
-            )
-            return msg, ACTION
+            name = self._name(c.item_id)
+            msg = self._m("swapped", qty=qty, name=name, mods=self._fmt_mods(kept))
+            return self._with_dropped(msg, name, dropped), ACTION
         name = self._name(line.item_id)
-        merged = self._merge(line.item_id, line.modifiers, c.modifiers) if c.modifiers else None
+        kept, dropped = self._applicable(line.item_id, c.modifiers)
+        merged = (
+            self._merge(line.item_id, line.modifiers, kept, c.negated)
+            if kept or c.negated
+            else None
+        )
         if not skip and line.backend_id is not None:
             self._update_line(line.backend_id, c.quantity, merged)
         if c.quantity is not None:
             line.quantity = c.quantity
         if merged is not None:
             line.modifiers = merged
-        if c.quantity is not None and c.modifiers:
-            msg = self._m("swapped", qty=c.quantity, name=name, mods=self._fmt_mods(c.modifiers))
+        if c.quantity is not None and kept:
+            msg = self._m("swapped", qty=c.quantity, name=name, mods=self._fmt_mods(kept))
         elif c.quantity is not None:
             msg = self._m("qty", name=name, qty=c.quantity)
-        elif c.modifiers:
-            msg = self._m("mods", name=name, mods=self._mod_names(c.modifiers))
+        elif kept:
+            msg = self._m("mods", name=name, mods=self._mod_names(kept))
+        elif c.negated:
+            msg = self._m("removed_mods", name=name, mods=self._mod_names(c.negated))
         else:
             msg = self._m("swapped", qty=line.quantity, name=name, mods="")
-        return msg, ACTION
+        return self._with_dropped(msg, name, dropped), ACTION
 
     def _remove(self, c: Clause) -> tuple[str, str]:
         if c.item_id is not None:
@@ -312,26 +332,39 @@ class RuleBasedAgent:
             for ln in lines
         )
 
-    def _merge(self, item_id: str, current: Iterable[str], new: list[str]) -> list[str]:
-        """Current modifiers that still apply to ``item_id`` plus ``new``; a new option
-        replaces the current option of the same exclusive group."""
+    def _applicable(self, item_id: str, mods: list[str]) -> tuple[list[str], list[str]]:
+        """Split options into those that apply to ``item_id`` and those that do not."""
         menu = self.backend.menu
-        applicable = {g.id: g for g in menu.groups_for(item_id)}
-        out = [m for m in current if menu.has_option(m) and menu.option_group(m).id in applicable]
+        groups = {g.id for g in menu.groups_for(item_id)}
+        kept = [m for m in mods if menu.has_option(m) and menu.option_group(m).id in groups]
+        return kept, [m for m in mods if m not in kept]
+
+    def _merge(
+        self, item_id: str, current: Iterable[str], new: list[str], negated: Iterable[str] = ()
+    ) -> list[str]:
+        """Current modifiers that still apply to ``item_id``, minus ``negated``, plus ``new``;
+        a new option replaces the current option of the same exclusive group."""
+        menu = self.backend.menu
+        out, _ = self._applicable(item_id, [m for m in current if m not in set(negated)])
         for m in new:
-            if menu.has_option(m) and menu.option_group(m).id in applicable:
-                group = menu.option_group(m)
-                if group.exclusive:
-                    out = [x for x in out if menu.option_group(x).id != group.id]
+            group = menu.option_group(m)
+            if group.exclusive:
+                out = [x for x in out if menu.option_group(x).id != group.id]
             if m not in out:
-                out.append(m)  # unknown or inapplicable options are left for the backend to refuse
+                out.append(m)
         return out
+
+    def _with_dropped(self, msg: str, name: str, dropped: list[str]) -> str:
+        if not dropped:
+            return msg
+        return f"{msg} {self._m('not_applicable', mods=self._mod_names(dropped), name=name)}"
 
 
 def make_factory(
     bugs: frozenset[str] = frozenset(), transcriber: Transcriber | None = None
 ) -> AgentFactory:
     """An :class:`AgentFactory` for ``InProcessAdapter`` building a fresh agent per session."""
+    bugs = _check_bugs(bugs)
 
     def factory(backend: OrderBackend, session: SessionInfo) -> RuleBasedAgent:
         return RuleBasedAgent(backend, session.language, bugs, transcriber)
@@ -342,18 +375,22 @@ def make_factory(
 def parse_agent_spec(spec: str) -> frozenset[str] | None:
     """``builtin:correct`` -> no bugs; ``builtin:buggy`` -> all; ``builtin:buggy:a,b`` -> those.
 
-    Anything else, including an unknown bug name, returns None.
+    A spec that is not ``builtin:`` at all returns None (it belongs to another adapter). A
+    malformed builtin spec or an unknown bug name raises ValueError.
     """
     s = spec.strip()
+    if not s.startswith("builtin:"):
+        return None
     if s == "builtin:correct":
         return frozenset()
     if s == "builtin:buggy":
         return frozenset(BUGS)
     prefix = "builtin:buggy:"
     if s.startswith(prefix):
-        names = [n.strip() for n in s[len(prefix) :].split(",")]
-        names = [n for n in names if n]
-        if not names or any(n not in BUGS for n in names):
-            return None
-        return frozenset(names)
-    return None
+        names = [n.strip() for n in s[len(prefix) :].split(",") if n.strip()]
+        if not names:
+            raise ValueError(f"{spec!r} names no bugs; known bugs: {', '.join(BUGS)}")
+        return _check_bugs(frozenset(names))
+    raise ValueError(
+        f"unknown builtin agent {spec!r}; use builtin:correct, builtin:buggy or builtin:buggy:a,b"
+    )

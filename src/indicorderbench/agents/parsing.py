@@ -35,6 +35,7 @@ class Clause:
     modifiers: list[str] = field(default_factory=list)
     raw: str = ""
     is_correction: bool = False
+    negated: list[str] = field(default_factory=list)  # options the caller does not want
 
 
 TERMINAL = frozenset({Intent.CLOSING, Intent.CONFIRM})
@@ -50,7 +51,7 @@ def _phrase_re(phrases: list[str]) -> re.Pattern[str]:
 
 def _build_connector_re() -> re.Pattern[str]:
     """Split on connectors, except where a connector starts a lexicon phrase ("aur kuch
-    nahi") or follows a number word ("ek aur lassi" = one more lassi)."""
+    nahi") or forms the "ek aur" construction ("ek aur lassi" = one more lassi)."""
     phrases = (
         lexicon.CLOSING_MARKERS
         + lexicon.CANCEL_ORDER_MARKERS
@@ -60,16 +61,16 @@ def _build_connector_re() -> re.Pattern[str]:
     protected = sorted(
         {p for p in phrases if any(p.startswith(c + " ") for c in lexicon.CONNECTORS)}
     )
-    numbers = sorted({w for table in lexicon.NUMBER_WORDS.values() for w in table})
-    after_number = "".join(rf"(?<!\b{re.escape(w)} )" for w in numbers)
     alts = []
     for c in sorted(lexicon.CONNECTORS, key=len, reverse=True):
         tails = [p[len(c) + 1 :] for p in protected if p.startswith(c + " ")]
         alt = re.escape(c)
+        if c == "aur":
+            alt = r"(?<!\bek )" + alt
         if tails:
             alt += rf"(?! (?:{'|'.join(re.escape(t) for t in tails)})\b)"
         alts.append(alt)
-    consuming = rf"{after_number}\b(?:{'|'.join(alts)})\b"
+    consuming = rf"\b(?:{'|'.join(alts)})\b"
     if not protected:
         return re.compile(consuming)
     lookahead = "|".join(re.escape(p) for p in protected)
@@ -94,6 +95,7 @@ _QUANTITY_PHRASE_RES = [
     (re.compile(rf"\b{re.escape(p)}\b"), n) for p, n in lexicon.QUANTITY_PHRASES.items()
 ]
 _DO_VERB_STEMS = frozenset(lexicon.DO_VERB_STEMS)
+_ARTICLES = frozenset({"a", "an"})
 
 
 def split_clauses(text: str) -> list[str]:
@@ -169,6 +171,8 @@ def _quantity(masked: str, language: str, item_start: int | None) -> int | None:
                 continue
             if item_start is not None and tok.start() > item_start:
                 continue
+        if word in _ARTICLES and not _directly_before(masked, tok.end(), item_start):
+            continue
         numbers.append((tok.start(), table[word]))
     if not numbers:
         return None
@@ -177,6 +181,11 @@ def _quantity(masked: str, language: str, item_start: int | None) -> int | None:
         if before:
             return before[-1][1]
     return numbers[0][1]
+
+
+def _directly_before(masked: str, end: int, item_start: int | None) -> bool:
+    """True when only blanks (consumed aliases or spaces) separate ``end`` from the item."""
+    return item_start is not None and end < item_start and not masked[end:item_start].strip()
 
 
 def _is_confirm(fragment: str) -> bool:
@@ -212,6 +221,10 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
         return None
     is_correction = carried or bool(_CORRECTION_RE.search(masked))
     is_remove = bool(_REMOVE_RE.search(masked))
+    negated: list[str] = []
+    if is_remove and item_id is None and options:
+        # "teekha nahi chahiye", "remove the extra cheese": drop those options from the last line
+        negated, options, is_remove, is_correction = options, [], False, True
     if is_remove:
         intent = Intent.REMOVE
     elif is_correction:
@@ -222,9 +235,15 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
         intent = Intent.CORRECT
     else:
         intent = Intent.UNKNOWN
-    if intent is Intent.CORRECT and item_id is None and quantity is None and not options:
+    if (
+        intent is Intent.CORRECT
+        and item_id is None
+        and quantity is None
+        and not options
+        and not negated
+    ):
         intent = Intent.UNKNOWN
-    return Clause(intent, item_id, quantity, options, fragment, is_correction)
+    return Clause(intent, item_id, quantity, options, fragment, is_correction, negated)
 
 
 def _carries_correction(fragment: str) -> bool:

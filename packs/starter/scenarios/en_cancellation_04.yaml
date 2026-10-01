@@ -18,6 +18,10 @@ caller:
       text: "Let me get one veg biryani then, that's all."
       is_closing: true
   clarifications:
+    - id: confirm_first
+      match: ["shall i (place|confirm)", "place (the|your) order\\?", "should i place"]
+      reply: {text: "Yes, please place the order."}
+      max_uses: 1
     - id: sure_cancel
       match: ["sure you want to cancel", "cancel the whole order\\?", "cancel it\\?"]
       reply: {text: "Yes, cancel it."}

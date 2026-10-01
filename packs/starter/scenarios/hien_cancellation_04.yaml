@@ -18,6 +18,10 @@ caller:
       text: "Ek veg biryani de do, bas itna hi."
       is_closing: true
   clarifications:
+    - id: confirm_first
+      match: ["order (place )?kar d(oo|u)n", "confirm kar", "place kar d(oo|u)n"]
+      reply: {text: "Haan, order place kar do."}
+      max_uses: 1
     - id: pakka_cancel
       match: ["pakka cancel", "poora order cancel\\?", "cancel kar d(oo|u)n\\?"]
       reply: {text: "Haan, cancel kar do."}

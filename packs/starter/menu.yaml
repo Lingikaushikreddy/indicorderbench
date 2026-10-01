@@ -11,7 +11,7 @@ modifier_groups:
     options:
       - id: with_onion
         name: With onion
-        aliases: [with onion, with onions, pyaaz ke saath, pyaaz wala, onion wala]
+        aliases: [with onion, with onions, pyaaz ke saath]
       - id: no_onion
         name: No onion
         aliases:

@@ -16,6 +16,10 @@ caller:
       text: "Yes, that's it, thanks."
       is_closing: true
   clarifications:
+    - id: confirm_first
+      match: ["shall i (place|confirm)", "place (the|your) order\\?", "should i place"]
+      reply: {text: "Yes, please place the order."}
+      max_uses: 1
     - id: sugar
       match: ["sugar\\?", "how much sugar"]
       reply: {text: "Normal sugar."}
