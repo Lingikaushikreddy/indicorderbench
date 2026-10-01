@@ -29,7 +29,7 @@ separate outcome follows EVA-Bench. Both are cited in `docs/methodology.md`.
 | Area | In scope | Out of scope (documented as next) |
 |---|---|---|
 | Languages | English (en-IN) control, Hinglish (hi-en, romanised) | Telugu, Tamil, Devanagari script packs |
-| Scenarios | 40 scenarios, 20 per language, 8 per failure category, `review_status: unreviewed` | Native-speaker reviewed status |
+| Scenarios | 42 scenarios, 21 per language: 8 per failure category plus 2 `demo`-tagged correction scenarios (built), `review_status: unreviewed` | Native-speaker reviewed status |
 | Caller | Scripted caller with clarification rules; audio clips optional | Generative LLM caller |
 | Agents under test | In-process Python agent; any agent reachable by an HTTP turn endpoint | LiveKit / Pipecat adapters |
 | Reference agent | Rule-based, no API keys, switchable bugs | LLM reference agent |
