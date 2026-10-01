@@ -44,6 +44,40 @@ CI runs the same commands on Python 3.11, 3.12 and 3.13.
 - Public functions have type hints; `mypy --strict` passes.
 - `CHANGELOG.md` gets a line under "Unreleased".
 
+## Release checklist
+
+Run these from a clean checkout of the release commit.
+
+1. Validate the bundled pack and run the checks above:
+
+   ```bash
+   uv run iob validate packs/starter
+   ```
+
+2. Build the sdist and the wheel:
+
+   ```bash
+   rm -rf dist && uv build
+   ```
+
+3. Confirm the wheel carries no audio. `hatch_build.py` bundles `packs/starter` without
+   `*.wav`, so clips from a local `iob synth` must never appear. This prints nothing:
+
+   ```bash
+   python -m zipfile -l dist/indicorderbench-*.whl | grep -i '\.wav'
+   ```
+
+4. Install the wheel into a fresh environment and run the installed CLI in an empty
+   directory, so it uses the bundled pack rather than the repository's:
+
+   ```bash
+   wheel="$(pwd)/$(ls dist/*.whl)"
+   cd "$(mktemp -d)"
+   uv venv && uv pip install "$wheel"
+   .venv/bin/iob validate starter
+   .venv/bin/iob demo --out demo-out
+   ```
+
 ## Recordings and consent
 
 If you contribute human recordings, include written consent from each speaker for
