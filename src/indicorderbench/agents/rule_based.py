@@ -61,6 +61,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "removed_mods": "Removed {mods} from {name}.",
         "not_applicable": "{mods} does not apply to {name}.",
         "already_without": "{name} has no {mods}.",
+        "not_in_order": "There is no {name} in your order.",
     },
     "hi-en": {
         "added": "{qty} {name}{mods} add kar diya.",
@@ -83,6 +84,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "removed_mods": "{name} se {mods} hata diya.",
         "not_applicable": "{mods} {name} pe lagu nahi hota.",
         "already_without": "{name} mein {mods} pehle se nahi hai.",
+        "not_in_order": "Aapke order mein {name} nahi hai.",
     },
 }
 
@@ -199,6 +201,13 @@ class RuleBasedAgent:
 
     def _correct(self, c: Clause) -> tuple[str, str]:
         skip = "ignore_corrections" in self.bugs
+        if (
+            c.targets_named_item
+            and c.item_id is not None
+            and not any(ln.item_id == c.item_id for ln in self._cart)
+        ):
+            # "no onion in the paneer wrap" with no wrap ordered: say so, change nothing
+            return self._m("not_in_order", name=self._name(c.item_id)), ACTION
         if not self._cart:
             if c.item_id is not None:
                 return self._add(c.item_id, c.quantity, c.modifiers, do_backend=not skip)
@@ -212,11 +221,14 @@ class RuleBasedAgent:
             if groups:
                 # "teekha nahi chahiye" edits the most recent line that has a spice level
                 with_group = [ln for ln in self._cart if groups & self._line_groups(ln)]
-                if not with_group:
+                if with_group:
+                    line = with_group[-1]
+                elif c.quantity is None:
                     names = self._mod_names(c.modifiers + c.negated)
                     msg = self._m("not_applicable", mods=names, name=self._name(line.item_id))
                     return msg, ACTION
-                line = with_group[-1]
+                # else: the quantity still applies to the last line; the modifier is reported
+                # as not applicable below
         else:
             qty = c.quantity or line.quantity
             kept, dropped = self._applicable(c.item_id, c.modifiers)

@@ -531,3 +531,48 @@ def test_ek_aur_protection_only_when_ek_starts_the_fragment():
         (Intent.ADD, "samosa", 2, []),
         (Intent.ADD, "mango_lassi", 1, []),
     ]
+
+
+# -- review round 3 ----------------------------------------------------------------
+
+
+def test_removing_an_item_described_by_a_modifier_is_a_removal():
+    cases = [
+        ("Remove the spicy chicken wrap.", "en-IN", "chicken_wrap"),
+        ("Teekha wala chicken wrap hata do", "hi-en", "chicken_wrap"),
+        ("Spicy chicken wrap nahi chahiye", "hi-en", "chicken_wrap"),
+        ("I don't want the spicy chicken wrap", "en-IN", "chicken_wrap"),
+        ("Extra cheese wala paneer wrap hata do", "hi-en", "paneer_wrap"),
+        ("Kam cheeni wali chai hata do", "hi-en", "masala_chai"),
+        ("Cancel the chai with less sugar", "en-IN", "masala_chai"),
+    ]
+    for text, lang, item in cases:
+        (c,) = parse(text, lang)
+        assert (c.intent, c.item_id) == (Intent.REMOVE, item), text
+    (c,) = parse("Remove the onion from the paneer wrap")
+    assert (c.intent, c.item_id, c.modifiers, c.targets_named_item) == (
+        Intent.CORRECT,
+        "paneer_wrap",
+        ["no_onion"],
+        True,
+    )
+
+
+def test_named_item_edits_are_marked_and_swaps_are_not():
+    cases = [
+        ("Paneer wrap mein teekha nahi chahiye", "hi-en"),
+        ("No onion in the paneer wrap", "en-IN"),
+        ("Paneer wrap mein pyaaz mat do", "hi-en"),
+        ("Paneer wrap mein extra cheese daal do", "hi-en"),
+    ]
+    for text, lang in cases:
+        (c,) = parse(text, lang)
+        assert (c.intent, c.item_id, c.targets_named_item) == (
+            Intent.CORRECT,
+            "paneer_wrap",
+            True,
+        ), text
+    (c,) = parse("actually make it a chicken wrap")
+    assert (c.intent, c.item_id, c.targets_named_item) == (Intent.CORRECT, "chicken_wrap", False)
+    (c,) = parse("Sorry, veg biryani ki jagah chicken wrap kar do.", "hi-en")
+    assert (c.intent, c.item_id, c.targets_named_item) == (Intent.CORRECT, "chicken_wrap", False)

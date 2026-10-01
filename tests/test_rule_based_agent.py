@@ -476,3 +476,62 @@ def test_inapplicable_only_correction_makes_no_backend_call():
     assert replies[1] == "Spicy does not apply to Masala Chai. Anything else?"
     assert [t.name for t in a.backend.snapshot().trace] == ["add_item"]
     assert [set(c.modifiers) for c in a.backend.snapshot().cart] == [set()]
+
+
+# -- review round 3 ----------------------------------------------------------------
+
+
+def test_removing_an_item_described_by_a_modifier_removes_the_line():
+    a = agent()
+    replies = drive(a, ["One spicy chicken wrap and one samosa.", "Remove the spicy chicken wrap."])
+    assert replies[1] == "Removed Chicken Wrap. Anything else?"
+    assert [c.item_id for c in a.backend.snapshot().cart] == ["samosa"]
+    assert [t.name for t in a.backend.snapshot().trace] == ["add_item", "add_item", "remove_line"]
+    b = agent(language="hi-en")
+    replies = drive(
+        b, ["Ek chai kam cheeni aur do samosa.", "Kam cheeni wali chai hata do."], "hi-en"
+    )
+    assert replies[1] == "Masala Chai hata diya. Aur kuch?"
+    assert [c.item_id for c in b.backend.snapshot().cart] == ["samosa"]
+    c = agent()
+    replies = drive(c, ["One paneer wrap and one chai.", "Remove the onion from the paneer wrap."])
+    assert replies[1] == "Updated Paneer Wrap: No onion. Anything else?"
+    assert [(ln.item_id, set(ln.modifiers)) for ln in c.backend.snapshot().cart] == [
+        ("paneer_wrap", {"no_onion"}),
+        ("masala_chai", set()),
+    ]
+
+
+def test_named_item_edit_for_an_item_not_in_the_cart_makes_no_call():
+    hi = "Aapke order mein Paneer Wrap nahi hai. Aur kuch?"
+    en = "There is no Paneer Wrap in your order. Anything else?"
+    cases = [
+        ("Ek chai.", "Paneer wrap mein teekha nahi chahiye.", "hi-en", hi),
+        ("One chai.", "No onion in the paneer wrap.", "en-IN", en),
+        ("Ek chai.", "Paneer wrap mein pyaaz mat do.", "hi-en", hi),
+        ("Ek chai.", "Paneer wrap mein extra cheese daal do.", "hi-en", hi),
+    ]
+    for first, second, lang, expected in cases:
+        a = agent(language=lang)
+        replies = drive(a, [first, second], lang)
+        assert replies[1] == expected, second
+        snap = a.backend.snapshot()
+        assert [(c.item_id, c.quantity, set(c.modifiers)) for c in snap.cart] == [
+            ("masala_chai", 1, set())
+        ], second
+        assert [t.name for t in snap.trace] == ["add_item"], second
+    b = agent()
+    drive(b, ["One paneer wrap.", "Actually make it a chicken wrap."])
+    assert [c.item_id for c in b.backend.snapshot().cart] == ["chicken_wrap"]
+
+
+def test_quantity_is_applied_even_when_the_modifier_does_not_apply():
+    a = agent()
+    replies = drive(a, ["One chai.", "Make it two extra spicy."])
+    assert replies[1] == (
+        "Changed Masala Chai to 2. Spicy does not apply to Masala Chai. Anything else?"
+    )
+    trace = a.backend.snapshot().trace
+    assert [t.name for t in trace] == ["add_item", "update_line"]
+    assert trace[1].args["quantity"] == 2 and trace[1].args["modifiers"] is None
+    assert [(c.quantity, set(c.modifiers)) for c in a.backend.snapshot().cart] == [(2, set())]

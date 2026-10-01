@@ -36,6 +36,7 @@ class Clause:
     raw: str = ""
     is_correction: bool = False
     negated: list[str] = field(default_factory=list)  # options the caller does not want
+    targets_named_item: bool = False  # "no onion in the paneer wrap": edit that item, never swap
 
 
 TERMINAL = frozenset({Intent.CLOSING, Intent.CONFIRM})
@@ -257,17 +258,23 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
     is_correction = carried or bool(_CORRECTION_RE.search(masked))
     is_remove = bool(_REMOVE_RE.search(masked))
     negated: list[str] = []
+    targets_named = False
     if is_remove:
         to_set, to_drop = _refused_options(masked, menu)
-        if options or to_set or to_drop:
-            # "teekha nahi chahiye", "pyaaz wala nahi chahiye", "remove the extra cheese":
-            # a refusal of modifiers, applied to a line, never a removal of the line
+        in_marker = bool(_IN_RE.search(masked))
+        # A refusal of modifiers rather than of a line: "teekha nahi chahiye" (no item named),
+        # "remove the onion from the paneer wrap" (a group subject refused), "paneer wrap mein
+        # teekha nahi chahiye" (in-marker). "Remove the spicy chicken wrap" names the item and
+        # only describes it with an option, so it stays a removal.
+        if (item_id is None and options) or to_set or to_drop or (options and in_marker):
             negated, options = options + to_drop, to_set
             is_remove, is_correction = False, True
+            targets_named = item_id is not None
         elif quantity is not None and _only_rehne_do(masked):
             is_remove, is_correction = False, True  # "ek hi rehne do" = keep just one
     elif item_id is not None and options and quantity is None and _IN_RE.search(masked):
-        is_correction = True  # "paneer wrap mein pyaaz nahi chahiye" edits the existing wrap
+        # "paneer wrap mein pyaaz nahi chahiye" / "no onion in the paneer wrap" edits that line
+        is_correction, targets_named = True, True
     if is_remove:
         intent = Intent.REMOVE
     elif is_correction:
@@ -286,7 +293,9 @@ def _parse_fragment(fragment: str, menu: Menu, language: str, carried: bool) -> 
         and not negated
     ):
         intent = Intent.UNKNOWN
-    return Clause(intent, item_id, quantity, options, fragment, is_correction, negated)
+    return Clause(
+        intent, item_id, quantity, options, fragment, is_correction, negated, targets_named
+    )
 
 
 def _carries_correction(fragment: str) -> bool:
