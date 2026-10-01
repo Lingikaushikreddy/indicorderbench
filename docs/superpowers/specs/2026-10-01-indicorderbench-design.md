@@ -203,9 +203,10 @@ expected:
 ```
 
 Pack-level `pack.yaml` carries `id`, `name`, `version`, `menu: menu.yaml`, and
-`defaults.caller.<language>` with, per language: `closing`, `confirm` and `fallback` turns,
-`confirm_patterns` (agent asks whether to place the order), `goodbye_patterns` (agent signals
-the call is over), and `clarifications` shared by all scenarios of that language. Scenario-level
+`defaults.caller.<language>` with, per language: `closing`, `confirm`, `fallback` and `nudge`
+turns, `confirm_patterns` (agent asks whether to place the order), `goodbye_patterns` (agent
+signals the call is over), `question_patterns` (agent reply is a question), `max_fallbacks`,
+`max_nudges`, and `clarifications` shared by all scenarios of that language. Scenario-level
 rules are checked before pack defaults. A scenario may override any of these fields.
 
 Semantics of `expected`:
@@ -223,23 +224,32 @@ Semantics of `expected`:
 `ScriptedCaller` is a state machine. Given the agent's latest utterance it returns the next
 `CallerUtterance` or signals the end of the call.
 
-1. The first move is `turns[0]`.
+1. The first move is `turns[0]`. A scripted turn may carry `is_closing: true`, which tells the
+   caller that this turn already said "that's all" so the default closing turn is not added.
 2. After each agent reply, in this order:
    a. If the script still has turns: if a scenario or pack clarification rule matches the
       agent reply (regex, case-insensitive, searched anywhere in the text) and has uses left,
-      reply with it. Otherwise speak the next scripted turn.
+      reply with it. Otherwise speak the next scripted turn. Scripts are written so that the
+      next turn is a sensible continuation even after an unmatched question.
    b. If the script is exhausted: if a clarification rule matches, use it; else if the
-      pack `confirm` patterns match ("confirm", "place the order", "shall I", "order kar",
-      "theek hai?"), speak the confirm turn once; else if the closing turn has not been spoken,
-      speak it; else speak the fallback turn, up to `max_fallbacks` (default 2).
-   c. When fallbacks are exhausted and the agent has not submitted, the caller stops and
-      marks itself **invalid**: it could not keep the conversation going, so the agent's
-      correctness is unknown.
-3. The runner ends the call when the script is exhausted, the closing turn has been spoken,
-   and either an active order exists or the agent's reply matches the pack `goodbye`
-   patterns ("order placed", "order confirm ho gaya", "thank you for ordering", "bye"). It also
-   ends on `max_turns` (default 20), which counts as agent failure, not simulator invalid,
-   because the caller was still able to respond.
+      pack `confirm_patterns` match ("confirm", "place the order", "shall I", "order kar",
+      "theek hai?"), speak the confirm turn (once; later matches fall through); else if the
+      closing turn has not been spoken, speak it; else decide by whether the agent reply is a
+      **question** (`?` present, or a `question_patterns` match such as "which", "what",
+      "how many", "kitne", "konsa", "kya"):
+      - question: speak the `fallback` turn (a generic affirmative), up to `max_fallbacks`
+        (default 2). When fallbacks are exhausted the caller stops and marks itself
+        **invalid**: the agent asked something the script could not answer, so the agent's
+        correctness is unknown.
+      - not a question: speak the `nudge` turn ("Please place the order" / "Order place kar
+        do"), up to `max_nudges` (default 2). When nudges are exhausted the caller stops and
+        remains **valid**: the agent had every chance to submit and did not, which the
+        checker scores as a failure.
+3. The runner ends the call when the script is exhausted, the closing has been spoken, and
+   either an active order exists or the agent's reply matches the pack `goodbye_patterns`
+   ("order placed", "order place ho gaya", "thank you for ordering", "bye"). It also ends on
+   `max_turns` (default 20), which counts as agent failure, not simulator invalid, because the
+   caller was still able to respond.
 4. The caller's own validity is independent of the agent's result. A caller that answered
    every question from the script or rules is valid even if the agent never submitted.
 
