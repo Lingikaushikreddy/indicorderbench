@@ -324,3 +324,73 @@ def test_audio_modality_with_placeholder_clips_and_oracle(tmp_path: Path):
     first_caller_turn = suite.scenarios[0].trials[0].transcript[0]
     assert first_caller_turn.audio_path and first_caller_turn.audio_path.endswith(".wav")
     assert (tmp_path / "o" / "assets").is_dir()
+
+
+def test_help_lists_compare_once():
+    code, out = run_cli("--help")
+    assert code == 0
+    assert "compare-cmd" not in out
+    assert out.count("  compare ") == 1
+
+
+def test_python_spec_imports_a_module_from_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """`iob run --agent python:my_agent:make_agent` must work for a module next to the shell,
+    like `python -m my_agent` would, even though console scripts do not put cwd on sys.path."""
+    import sys
+
+    (tmp_path / "my_local_agent.py").write_text(
+        "from tests.helpers import MiniPackAgent\n"
+        "def make_agent(backend, session):\n"
+        "    return MiniPackAgent(backend)\n"
+    )
+    monkeypatch.setattr(sys, "path", [p for p in sys.path if p not in ("", str(tmp_path))])
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delitem(sys.modules, "my_local_agent", raising=False)
+    code, out = run_cli(
+        "run", str(FIX), "--agent", "python:my_local_agent:make_agent", "--out", str(tmp_path / "o")
+    )
+    assert code == 0, out
+    assert read_json(tmp_path / "o" / "results.json").metrics.pass_rate == 1.0
+
+
+def test_run_with_perturbed_clips_uses_them_and_records_the_clip_set(tmp_path: Path):
+    """`iob perturb` output is a drop-in clip set: `--clips` makes the audio run send those
+    clips, the oracle reads the perturbed manifest, and results.json says which set was used."""
+    shutil.copytree(FIX, tmp_path / "p")
+    assert run_cli("synth", str(tmp_path / "p"), "--provider", "silence")[0] == 0
+    noisy = tmp_path / "noisy"
+    code, out = run_cli("perturb", str(tmp_path / "p"), "--out", str(noisy), "--gain", "6")
+    assert code == 0, out
+    assert f"--clips {noisy}" in out  # the hint for the next command
+    code, out = run_cli(
+        "run",
+        str(tmp_path / "p"),
+        "--agent",
+        "builtin:correct",
+        "--modality",
+        "audio",
+        "--clips",
+        str(noisy),
+        "--out",
+        str(tmp_path / "o"),
+    )
+    assert code == 0, out
+    suite = read_json(tmp_path / "o" / "results.json")
+    assert suite.metrics.pass_rate == 1.0 and suite.pack.clips == str(noisy.resolve())
+    first = suite.scenarios[0].trials[0].transcript[0]
+    assert first.audio_path and Path(first.audio_path).is_relative_to(noisy.resolve())
+    # a run on the pack's own clips records no alternate set
+    code, out = run_cli(
+        "run", str(tmp_path / "p"), "--agent", "builtin:correct", "--out", str(tmp_path / "o2")
+    )
+    assert code == 0, out
+    assert read_json(tmp_path / "o2" / "results.json").pack.clips is None
+
+
+def test_run_rejects_a_clips_option_that_is_not_a_directory(tmp_path: Path):
+    code, out = run_cli(
+        "run", str(FIX), "--agent", GOOD, "--clips", str(tmp_path / "nope"), "--out", str(tmp_path)
+    )
+    assert code == 2 and "--clips" in out and "directory" in out

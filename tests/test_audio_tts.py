@@ -233,3 +233,40 @@ def test_synth_pack_resynthesizes_when_job_changed(tmp_path: Path) -> None:
     tts2 = FakeTTS(audio)
     tts2.model = "fake-2"
     assert len(synth_pack(pack, tts2, "other").written) > 0
+
+
+def _override_closing(root: Path, text: str) -> None:
+    sc = root / "scenarios" / "en_quantity_01.yaml"
+    sc.write_text(
+        sc.read_text().replace(
+            "caller:\n  turns:\n", f'caller:\n  closing: {{text: "{text}"}}\n  turns:\n'
+        )
+    )
+
+
+def test_synth_pack_synthesises_a_scenario_level_closing_override(tmp_path: Path) -> None:
+    """A scenario that overrides `closing` says different words from the language default, so
+    it needs its own clip at clips/<scenario>/closing.wav, and Pack.clip_path must prefer it."""
+    dst = tmp_path / "pack"
+    shutil.copytree(MINIPACK, dst)
+    _override_closing(dst, "That is it for today.")
+    pack = load_pack(dst)
+    tts = FakeTTS(wav_bytes(tmp_path))
+    rep = synth_pack(pack, tts, "v")
+    assert not rep.failed
+    rels = {p.relative_to(pack.root).as_posix() for p in rep.written}
+    assert "clips/en_quantity_01/closing.wav" in rels
+    assert "clips/_defaults/en-IN/closing.wav" in rels  # the other scenario still needs it
+    by_path = {c.path: c for c in load_manifest(pack.root / "clips" / "manifest.json").clips}
+    assert by_path["clips/en_quantity_01/closing.wav"].text == "That is it for today."
+    assert by_path["clips/_defaults/en-IN/closing.wav"].text == "That's all."
+    s = pack.scenario("en_quantity_01")
+    resolved = s.caller.resolved(pack.defaults_for(s.language))
+    assert pack.clip_path(s.id, resolved.closing, s.language) == (
+        pack.root / "clips" / "en_quantity_01" / "closing.wav"
+    )
+    other = pack.scenario("en_cancellation_01")
+    other_resolved = other.caller.resolved(pack.defaults_for(other.language))
+    assert pack.clip_path(other.id, other_resolved.closing, other.language) == (
+        pack.root / "clips" / "_defaults" / "en-IN" / "closing.wav"
+    )

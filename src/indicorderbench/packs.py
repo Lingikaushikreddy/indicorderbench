@@ -7,7 +7,7 @@ a menu file, ``scenarios/*.yaml`` and optional ``clips/`` audio.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -23,8 +23,6 @@ from indicorderbench.schemas.scenario import (
     Scenario,
 )
 
-DEFAULT_TURN_IDS = ("closing", "confirm", "fallback", "nudge")
-
 
 class PackError(Exception):
     def __init__(self, problems: list[str]) -> None:
@@ -38,6 +36,17 @@ class Pack:
     manifest: PackManifest
     menu: Menu
     scenarios: list[Scenario]
+    clips_dir: Path | None = None  # an alternate clip set; None means <root>/clips
+
+    @property
+    def clips(self) -> Path:
+        """The directory clips are resolved from."""
+        return self.clips_dir if self.clips_dir is not None else self.root / "clips"
+
+    def with_clips(self, clips_dir: Path) -> Pack:
+        """This pack resolving clips from ``clips_dir`` (``iob perturb`` output, for example)
+        instead of ``<root>/clips``. The pack on disk is untouched."""
+        return replace(self, clips_dir=Path(clips_dir).resolve())
 
     def scenario(self, scenario_id: str) -> Scenario:
         for s in self.scenarios:
@@ -71,22 +80,19 @@ class Pack:
     def clip_path(self, scenario_id: str, turn: CallerTurn, language: Language) -> Path | None:
         """Resolve a turn's audio clip, or None when no clip exists.
 
-        An explicit ``audio`` field is relative to the pack root. Otherwise scripted and
-        clarification turns live at ``clips/<scenario>/<turn id>.wav``, and the language
-        defaults (closing, confirm, fallback, nudge and the pack-wide clarification replies)
-        at ``clips/_defaults/<language>/<turn id>.wav``, which is also the fallback for any
-        turn id without a scenario-specific clip.
+        An explicit ``audio`` field is relative to the pack root. Otherwise, with ``<clips>``
+        being :attr:`clips`, a turn's clip is ``<clips>/<scenario>/<turn id>.wav`` (scripted
+        turns, clarification replies and a scenario's own closing/confirm/fallback/nudge
+        overrides), falling back to ``<clips>/_defaults/<language>/<turn id>.wav`` (the
+        pack-wide default turns and clarification replies, synthesised once per language).
         """
         if turn.audio:
             p = self.root / turn.audio
             return p if p.exists() else None
-        shared = self.root / "clips" / "_defaults" / language.value / f"{turn.id}.wav"
-        if turn.id in DEFAULT_TURN_IDS:
-            return shared if shared.exists() else None
-        specific = self.root / "clips" / scenario_id / f"{turn.id}.wav"
+        specific = self.clips / scenario_id / f"{turn.id}.wav"
         if specific.exists():
             return specific
-        # Pack-default clarification replies are synthesised once per language.
+        shared = self.clips / "_defaults" / language.value / f"{turn.id}.wav"
         return shared if shared.exists() else None
 
     def content_hash(self) -> str:

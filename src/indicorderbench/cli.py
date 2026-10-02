@@ -135,7 +135,11 @@ def _run_suite(
     """
     try:
         setup = build_adapter_factory(
-            agent, modality=config.modality, pack_root=pack.root, timeout_s=config.timeout_turn_s
+            agent,
+            modality=config.modality,
+            pack_root=pack.root,
+            timeout_s=config.timeout_turn_s,
+            clips_dir=pack.clips,
         )
     except AgentSpecError as e:
         raise typer.BadParameter(str(e), param_hint="--agent") from e
@@ -281,6 +285,13 @@ def run(
     ],
     trials: Annotated[int, typer.Option(min=1)] = 1,
     modality: Annotated[Modality, typer.Option()] = Modality.TEXT,
+    clips: Annotated[
+        Path | None,
+        typer.Option(
+            "--clips",
+            help="caller clips to use instead of <pack>/clips, e.g. the output of iob perturb",
+        ),
+    ] = None,
     tag: Annotated[list[str] | None, typer.Option("--tag")] = None,
     language: Annotated[list[str] | None, typer.Option("--language")] = None,
     category: Annotated[list[str] | None, typer.Option("--category")] = None,
@@ -338,6 +349,10 @@ def run(
             param_hint="--backend-url",
         )
     loaded = _load(pack)
+    if clips is not None:
+        if not clips.is_dir():
+            raise typer.BadParameter(f"{clips} is not a directory", param_hint="--clips")
+        loaded = loaded.with_clips(clips)
     scenarios = _select(loaded, tag, language, category, id)
     config = RunConfig(
         trials=trials,
@@ -381,7 +396,7 @@ def report(
     typer.echo(f"wrote {path}")
 
 
-@app.command()
+@app.command(name="compare")
 def compare_cmd(
     baseline: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
     current: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
@@ -510,6 +525,7 @@ def perturb(
     except AudioExtraMissing as e:
         raise _fail(str(e)) from e
     typer.echo(f"wrote {len(written)} clip(s) to {out}")
+    typer.echo(f"  iob run {pack} --modality audio --clips {out} --agent <spec>")
 
 
 @app.command(name="serve-backend")
@@ -542,9 +558,6 @@ def serve_backend(
     finally:
         server.stop()
         typer.echo("stopped")
-
-
-app.command(name="compare")(compare_cmd)
 
 
 def main() -> None:  # pragma: no cover - console entry point

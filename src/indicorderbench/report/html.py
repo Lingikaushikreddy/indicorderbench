@@ -294,6 +294,7 @@ def _build_page(
         ("Scenarios", str(suite.metrics.n_scenarios)),
         ("Trials per scenario", str(run.trials)),
         ("Modality", run.modality),
+        *([("Clip set", pack.clips)] if pack.clips else []),
         ("Seed", DASH if run.seed is None else str(run.seed)),
         ("Host", run.host),
     ]

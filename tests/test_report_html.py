@@ -192,3 +192,11 @@ def test_distinct_clips_never_overwrite_and_names_stay_inside_assets(tmp_path: P
     assert (assets / "______evil.wav").read_bytes() == third.read_bytes()
     assert 'src="assets/en_quantity_01/t1-2.wav"' in html
     assert sorted(p.name for p in assets.iterdir()) == ["______evil.wav", "t1-2.wav", "t1.wav"]
+
+
+def test_header_names_the_clip_set_only_when_an_alternate_one_was_used(tmp_path: Path) -> None:
+    suite = make_suite({"en_quantity_01": [P]})
+    assert "Clip set" not in render(tmp_path, suite)
+    suite.pack.clips = "/data/noisy-10db"
+    html = render(tmp_path / "alt", suite)
+    assert "Clip set" in html and "/data/noisy-10db" in html
