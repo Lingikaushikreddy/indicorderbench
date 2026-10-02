@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-01
+
 ### Added
 - `iob run --clips <dir>` runs an audio suite on an alternate clip set such as `iob perturb`
   output. `results.json` records it (`pack.clips`), the HTML report shows it and

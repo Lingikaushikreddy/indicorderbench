@@ -1,6 +1,6 @@
 [project]
 name = "indicorderbench"
-version = "0.1.0"
+version = "0.1.1"
 description = "Catches multilingual voice agents placing the wrong order. A τ-bench style benchmark for voice ordering in Indian languages."
 readme = "README.md"
 requires-python = ">=3.11"

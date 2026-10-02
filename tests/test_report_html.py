@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from indicorderbench import __version__
 from indicorderbench.report.compare import compare
 from indicorderbench.report.formatting import pct
 from indicorderbench.report.html import write_html
@@ -108,7 +109,7 @@ def test_self_contained_escaped_and_well_formed(tmp_path: Path) -> None:
 def test_footer_has_version_hash_and_timestamps(tmp_path: Path) -> None:
     html = render(tmp_path, make_suite(MIXED))
     footer = block(html, "footer", "footer")
-    assert "IndicOrderBench 0.1.0" in footer and PACK_HASH in footer
+    assert f"IndicOrderBench {__version__}" in footer and PACK_HASH in footer
     assert "2026-10-01T09:30:00+00:00" in footer and "2026-10-01T09:32:05+00:00" in footer
 
 
