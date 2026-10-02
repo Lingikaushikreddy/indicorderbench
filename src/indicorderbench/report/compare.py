@@ -73,6 +73,9 @@ def _run_problems(baseline: SuiteResult, current: SuiteResult) -> list[str]:
             f"pack content hash differs (baseline {b.content_hash[:12]}, current "
             f"{c.content_hash[:12]}): scenarios may have changed between runs"
         )
+    if b.clips != c.clips:
+        own = "pack clips"
+        problems.append(f"clip set differs (baseline {b.clips or own}, current {c.clips or own})")
     for name in ("trials", "modality"):
         bv, cv = getattr(baseline.run, name), getattr(current.run, name)
         if bv != cv:

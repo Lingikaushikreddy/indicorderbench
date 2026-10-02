@@ -34,12 +34,14 @@ class AgentReply:
 ```
 
 Modality: `--modality text` sends text only, `audio` sends audio only (every turn needs a
-clip; run `iob synth` first), `both` sends both.
+clip; run `iob synth` first), `both` sends both. `--clips <dir>` swaps in another clip set,
+such as `iob perturb` output; `results.json` records it under `pack.clips`.
 
 ## In-process adapter
 
 Write a factory that takes the backend and session and returns an object with a `handle`
-method (sync or async). Point the CLI at it with `python:my_pkg.my_module:make_agent`.
+method (sync or async). Point the CLI at it with `python:my_pkg.my_module:make_agent`; a
+module in the current directory works too (`python:my_agent:make_agent` for `./my_agent.py`).
 
 An `async def handle` runs on the runner's event loop, so it must not block it. A plain
 `def handle` runs in a worker thread, so `--timeout-turn` applies to it too. Python cannot

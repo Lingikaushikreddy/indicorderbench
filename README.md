@@ -178,13 +178,17 @@ narrows the task to ordering so the verdict can be deterministic.
 per language plus two `demo`-tagged correction scenarios. Ten are tagged `smoke` for a
 30-second gate. Every scenario lists its acceptable end states and carries clarification rules,
 so an agent that asks "how many?" before acting gets a fair run. A rule-based reference agent
-with five switchable bugs validates the pack: the correct agent passes 42/42, and each bug
-fails exactly its own category.
+with five switchable bugs validates the pack: the correct agent passes 42/42, each bug fails
+every scenario of its own category, and the smoke scenarios of the other categories keep
+passing. Bugs are not fully isolated across the whole pack: `drop_modifiers` also fails the
+four correction scenarios that correct a modifier, and `quantity_default_one` also fails the
+cancellation and duplicate-submission scenarios that order two of something.
 
 Audio: `iob synth starter --provider sarvam` generates caller clips with Sarvam bulbul
 (set `SARVAM_API_KEY`); `iob perturb` derives noisy, quiet or telephone-band variants;
-`iob run --modality audio` sends only audio. `--provider silence` makes placeholder clips so
-the whole audio pipeline runs offline (pipeline tests, not evaluations).
+`iob run --modality audio` sends only audio, and `--clips <dir>` runs on such a variant
+(`results.json` records which clip set was used). `--provider silence` makes placeholder clips
+so the whole audio pipeline runs offline (pipeline tests, not evaluations).
 
 Write your own scenarios or a new language pack: [docs/scenarios.md](docs/scenarios.md).
 

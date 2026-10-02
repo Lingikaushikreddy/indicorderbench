@@ -132,3 +132,15 @@ def test_render_comparison_text() -> None:
     words = ["status", "regressed", "new", "removed", "REGRESSED"]
     assert len({line.index(w) for line, w in zip(lines, words, strict=False)}) == 1  # aligned
     assert "1 new and 1 removed" in text
+
+
+def test_reports_different_clip_sets_as_a_problem() -> None:
+    baseline = make_suite({"en_quantity_01": [P]})
+    current = make_suite({"en_quantity_01": [P]})
+    current.pack.clips = "/tmp/noisy"
+    c = compare(baseline, current)
+    assert not c.regressed
+    assert any("clip set differs" in p and "/tmp/noisy" in p for p in c.problems)
+    assert not any(
+        "clip" in p for p in compare(baseline, make_suite({"en_quantity_01": [P]})).problems
+    )

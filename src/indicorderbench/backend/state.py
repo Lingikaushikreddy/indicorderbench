@@ -40,6 +40,31 @@ def _describe(error: Exception) -> str:
     return str(error)
 
 
+def _int_arg(name: str, value: Any) -> int:
+    """``value`` as a count. JSON ``true``, ``"2"`` and ``2.5`` are refused; ``2.0`` is 2."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise BackendError("invalid_args", f"{name} must be an integer, got {value!r}")
+    if isinstance(value, float):
+        if not value.is_integer():
+            raise BackendError("invalid_args", f"{name} must be an integer, got {value!r}")
+        return int(value)
+    return value
+
+
+def _modifiers_arg(value: Any) -> list[str]:
+    """``value`` as a list of option ids; None means no modifiers."""
+    if value is None:
+        return []
+    if not isinstance(value, (list, tuple)) or not all(isinstance(m, str) for m in value):
+        raise BackendError("invalid_args", "modifiers must be a list of option id strings")
+    return list(value)
+
+
+def _recorded(value: Any) -> Any:
+    """A copy of a list argument for the trace, so a caller's later edits do not alter it."""
+    return list(value) if isinstance(value, (list, tuple)) else value
+
+
 def _jsonable(value: Any) -> Any:
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json")
@@ -117,6 +142,8 @@ class OrderBackend:
     # -- tools ----------------------------------------------------------------
     def lookup_menu(self, query: str) -> list[dict[str, Any]]:
         def run() -> list[dict[str, Any]]:
+            if not isinstance(query, str):
+                raise BackendError("invalid_args", f"query must be a string, got {query!r}")
             return [
                 {
                     "item_id": i.id,
@@ -141,23 +168,23 @@ class OrderBackend:
     def add_item(
         self, item_id: str, quantity: int = 1, modifiers: list[str] | None = None
     ) -> CartLine:
-        mods = list(modifiers or [])
-
         def run() -> CartLine:
             if not self.menu.has_item(item_id):
                 raise BackendError("unknown_item", f"no item {item_id!r}")
-            if quantity < 1:
+            qty = _int_arg("quantity", quantity)
+            if qty < 1:
                 raise BackendError("invalid_quantity", "quantity must be at least 1")
             line = CartLine(
                 line_id=f"l{next(self._line_ids)}",
                 item_id=item_id,
-                quantity=quantity,
-                modifiers=self._validate_modifiers(item_id, mods),
+                quantity=qty,
+                modifiers=self._validate_modifiers(item_id, _modifiers_arg(modifiers)),
             )
             self._cart[line.line_id] = line
             return line
 
-        args = {"item_id": item_id, "quantity": quantity, "modifiers": mods}
+        recorded = [] if modifiers is None else _recorded(modifiers)
+        args = {"item_id": item_id, "quantity": quantity, "modifiers": recorded}
         return self._traced("add_item", args, run)
 
     def update_line(
@@ -167,22 +194,29 @@ class OrderBackend:
             line = self._cart.get(line_id)
             if line is None:
                 raise BackendError("unknown_line", f"no cart line {line_id!r}")
-            if quantity is not None and quantity < 0:
+            qty = None if quantity is None else _int_arg("quantity", quantity)
+            if qty is not None and qty < 0:
                 raise BackendError("invalid_quantity", "quantity must be 0 or more")
-            if quantity == 0:
+            if qty == 0:
                 del self._cart[line_id]
                 return None
-            new_q = line.quantity if quantity is None else quantity
             new_m = (
                 line.modifiers
                 if modifiers is None
-                else self._validate_modifiers(line.item_id, modifiers)
+                else self._validate_modifiers(line.item_id, _modifiers_arg(modifiers))
             )
-            updated = line.model_copy(update={"quantity": new_q, "modifiers": new_m})
+            # A validated model, not model_copy(update=...), which skips validation.
+            updated = CartLine(
+                line_id=line_id,
+                item_id=line.item_id,
+                quantity=line.quantity if qty is None else qty,
+                modifiers=new_m,
+                note=line.note,
+            )
             self._cart[line_id] = updated
             return updated
 
-        args = {"line_id": line_id, "quantity": quantity, "modifiers": modifiers}
+        args = {"line_id": line_id, "quantity": quantity, "modifiers": _recorded(modifiers)}
         return self._traced("update_line", args, run)
 
     def remove_line(self, line_id: str) -> None:

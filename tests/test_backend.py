@@ -140,3 +140,62 @@ def test_refused_calls_are_traced(name: str, args: dict[str, object], code: str)
     assert trace[0].name == name and args.items() <= trace[0].args.items()
     assert trace[0].error is not None and trace[0].error.startswith(f"{code}: ")
     assert trace[0].result is None and b.get_cart() == []
+
+
+def test_lookup_menu_rejects_a_non_string_query_and_traces_it():
+    b = make_backend()
+    for query in (None, 5):
+        with pytest.raises(BackendError) as e:
+            b.call("lookup_menu", {"query": query})
+        assert e.value.code == "invalid_args"
+    trace = b.snapshot().trace
+    assert [c.name for c in trace] == ["lookup_menu", "lookup_menu"]
+    assert all(c.error and c.error.startswith("invalid_args") for c in trace)
+
+
+@pytest.mark.parametrize("quantity", [2.5, True, "2"])
+def test_update_line_rejects_a_non_integer_quantity(quantity: object):
+    b = make_backend()
+    line = b.add_item("paneer_wrap", 1)
+    with pytest.raises(BackendError) as e:
+        b.update_line(line.line_id, quantity=quantity)  # type: ignore[arg-type]
+    assert e.value.code == "invalid_args" and "quantity" in e.value.message
+    assert b.get_cart()[0].quantity == 1
+
+
+def test_add_item_rejects_a_bool_quantity():
+    b = make_backend()
+    with pytest.raises(BackendError) as e:
+        b.add_item("paneer_wrap", True)  # JSON true is not a count
+    assert e.value.code == "invalid_args" and "quantity" in e.value.message
+    assert b.get_cart() == []
+
+
+@pytest.mark.parametrize("modifiers", ["no_onion", 5, [1]])
+def test_modifiers_must_be_a_list_of_strings(modifiers: object):
+    b = make_backend()
+    line = b.add_item("paneer_wrap", 1)
+    with pytest.raises(BackendError) as e:
+        b.add_item("paneer_wrap", 1, modifiers)  # type: ignore[arg-type]
+    assert e.value.code == "invalid_args" and "modifiers" in e.value.message
+    with pytest.raises(BackendError) as e:
+        b.update_line(line.line_id, modifiers=modifiers)  # type: ignore[arg-type]
+    assert e.value.code == "invalid_args" and "modifiers" in e.value.message
+    assert b.get_cart()[0].modifiers == set()
+    # every refusal is in the trace, with the raw argument
+    trace = [c for c in b.snapshot().trace if c.error]
+    assert [c.name for c in trace] == ["add_item", "update_line"]
+    assert all(c.args["modifiers"] == modifiers for c in trace)
+
+
+def test_line_quantities_in_a_snapshot_always_round_trip_through_json():
+    b = make_backend()
+    line = b.add_item("paneer_wrap", 1)
+    b.update_line(line.line_id, quantity=2.0)  # type: ignore[arg-type]
+    b.submit_order()
+    from indicorderbench.schemas.results import BackendSnapshot
+
+    snapshot = b.snapshot()
+    assert snapshot.orders[0].lines[0].quantity == 2
+    assert isinstance(snapshot.orders[0].lines[0].quantity, int)
+    assert BackendSnapshot.model_validate_json(snapshot.model_dump_json()) == snapshot

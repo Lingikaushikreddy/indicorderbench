@@ -308,3 +308,20 @@ def test_run_suite_sync_runs_multiple_trials():
     )
     assert [t.trial for t in suite.scenarios[0].trials] == [1, 2, 3]
     assert suite.metrics.pass_k == {1: 1.0, 2: 1.0, 3: 1.0}
+
+
+async def test_text_modality_records_no_audio_path_even_when_a_clip_exists(tmp_path: Path):
+    """The transcript records what the agent was sent; a text run sends no audio, so the
+    report must not show (or copy) clips the agent never heard."""
+    import shutil
+
+    shutil.copytree(FIX, tmp_path / "p")
+    clip = tmp_path / "p" / "clips" / "en_quantity_01" / "t1.wav"
+    clip.parent.mkdir(parents=True)
+    clip.write_bytes(b"RIFFfake")
+    pack = load_pack(tmp_path / "p")
+    agent = ScriptedAgent(["Added. Anything else?", "Order placed!"], {1: "add2", 2: "submit"})
+    r = await run_trial(pack, pack.scenario("en_quantity_01"), agent, cfg(), trial=1)
+    assert r.outcome is Outcome.PASS
+    assert agent.seen[0].audio_bytes is None and agent.seen[0].audio_path is None
+    assert all(t.audio_path is None for t in r.transcript)

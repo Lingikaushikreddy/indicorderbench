@@ -194,3 +194,57 @@ def test_pack_root_is_absolute_even_when_loaded_from_a_relative_path(tmp_path: P
     turn = pack.scenario("en_quantity_01").caller.turns[0]
     resolved = pack.clip_path("en_quantity_01", turn, Language.EN_IN)
     assert resolved is not None and resolved.is_absolute()
+
+
+def test_scenario_level_caller_overrides_get_their_default_ids(tmp_path: Path):
+    """closing/confirm/fallback/nudge overrides without an id are named like the defaults they
+    replace, as soon as the scenario is loaded (synth and clip lookup rely on the id)."""
+    shutil.copytree(FIX, tmp_path / "p")
+    sc = tmp_path / "p" / "scenarios" / "en_quantity_01.yaml"
+    sc.write_text(
+        sc.read_text().replace(
+            "caller:\n  turns:\n",
+            'caller:\n  closing: {text: "That is it."}\n  nudge: {text: "Go on."}\n  turns:\n',
+        )
+    )
+    s = load_pack(tmp_path / "p").scenario("en_quantity_01")
+    assert s.caller.closing is not None and s.caller.closing.id == "closing"
+    assert s.caller.nudge is not None and s.caller.nudge.id == "nudge"
+    assert s.caller.confirm is None
+
+
+def test_scripted_turn_ids_named_like_a_caller_default_are_rejected(tmp_path: Path):
+    """A scripted turn called `closing` would share its clip path with the scenario's closing
+    override, so those four ids are reserved."""
+    shutil.copytree(FIX, tmp_path / "p")
+    sc = tmp_path / "p" / "scenarios" / "en_quantity_01.yaml"
+    sc.write_text(
+        sc.read_text().replace('- text: "Two paneer', '- id: closing\n      text: "Two paneer')
+    )
+    with pytest.raises(PackError) as e:
+        load_pack(tmp_path / "p")
+    assert "reserved" in str(e.value) and "closing" in str(e.value)
+
+
+def test_with_clips_resolves_every_turn_from_the_alternate_directory(tmp_path: Path):
+    """`iob perturb` writes a drop-in replacement for <pack>/clips; Pack.with_clips points the
+    clip lookup there without touching the pack on disk."""
+    shutil.copytree(FIX, tmp_path / "p")
+    noisy = tmp_path / "noisy"
+    (noisy / "en_quantity_01").mkdir(parents=True)
+    (noisy / "en_quantity_01" / "t1.wav").write_bytes(b"RIFFnoisy")
+    (noisy / "_defaults" / "en-IN").mkdir(parents=True)
+    (noisy / "_defaults" / "en-IN" / "closing.wav").write_bytes(b"RIFFnoisy")
+    original = load_pack(tmp_path / "p")
+    pack = original.with_clips(noisy)
+    turn = pack.scenario("en_quantity_01").caller.turns[0]
+    closing = pack.defaults_for(Language.EN_IN).closing
+    assert (
+        pack.clip_path("en_quantity_01", turn, Language.EN_IN)
+        == noisy / "en_quantity_01" / "t1.wav"
+    )
+    assert pack.clip_path("en_quantity_01", closing, Language.EN_IN) == (
+        noisy / "_defaults" / "en-IN" / "closing.wav"
+    )
+    assert pack.clips == noisy.resolve() and original.clips == tmp_path.resolve() / "p" / "clips"
+    assert original.clip_path("en_quantity_01", turn, Language.EN_IN) is None

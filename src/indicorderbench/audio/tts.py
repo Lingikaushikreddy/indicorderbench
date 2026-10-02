@@ -24,7 +24,7 @@ from indicorderbench.audio.provider import SARVAM_BASE as SARVAM_BASE
 from indicorderbench.audio.provider import AudioProviderError as AudioProviderError
 from indicorderbench.audio.provider import error_from_response as error_from_response
 from indicorderbench.audio.provider import language_code as language_code
-from indicorderbench.packs import DEFAULT_TURN_IDS, Pack
+from indicorderbench.packs import Pack
 from indicorderbench.schemas.scenario import CallerTurn, Language
 
 WAV_HEADER_BYTES = 44  # a canonical RIFF/WAVE header; anything shorter holds no audio
@@ -131,15 +131,14 @@ class _Job:
     language: str
 
 
-def _target(turn: CallerTurn, scenario_id: str, language: Language, default: bool) -> str | None:
+def _target(turn: CallerTurn, scenario_id: str, language: Language, default: bool) -> str:
     """Pack-relative clip path for a turn, mirroring ``Pack.clip_path``."""
-    assert turn.id is not None
+    if turn.id is None:  # schema validation names every turn; keep the path well-formed anyway
+        raise ValueError(f"turn {turn.text!r} in {scenario_id} has no id")
     if turn.audio:
         return Path(turn.audio).as_posix()
     if default:
         return f"clips/_defaults/{language.value}/{turn.id}.wav"
-    if turn.id in DEFAULT_TURN_IDS:
-        return None  # indistinguishable from the language default; Pack.clip_path resolves it there
     return f"clips/{scenario_id}/{turn.id}.wav"
 
 
@@ -148,9 +147,8 @@ def _jobs(pack: Pack, scenario_ids: list[str] | None) -> list[_Job]:
 
     def add(turn: CallerTurn, scenario_id: str, language: Language, default: bool) -> None:
         rel = _target(turn, scenario_id, language, default)
-        if rel is not None and rel not in jobs:
-            assert turn.id is not None
-            jobs[rel] = _Job(rel, scenario_id, turn.id, turn.text, language.value)
+        if rel not in jobs:
+            jobs[rel] = _Job(rel, scenario_id, str(turn.id), turn.text, language.value)
 
     scenarios = pack.filter(ids=scenario_ids) if scenario_ids else pack.scenarios
     languages: list[Language] = []
@@ -183,9 +181,9 @@ def synth_pack(
 ) -> SynthReport:
     """Synthesize every caller clip in the pack and update ``clips/manifest.json``.
 
-    Scenario-level overrides of closing/confirm/fallback/nudge that keep the default id and
-    have no explicit ``audio`` path are not synthesized separately: ``Pack.clip_path`` would
-    resolve them to the language default clip.
+    Language defaults (closing/confirm/fallback/nudge and pack-wide clarification replies)
+    are synthesised once per language under ``clips/_defaults/<language>/``; a scenario that
+    overrides one of them gets its own clip under ``clips/<scenario>/``.
     """
     report = SynthReport()
     manifest_path = pack.root / "clips" / "manifest.json"

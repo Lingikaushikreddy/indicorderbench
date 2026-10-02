@@ -91,7 +91,9 @@ pass^k with the trial count rather than a single number.
 Clips are synthesised by a TTS provider (Sarvam bulbul in v0.1) and recorded in
 `clips/manifest.json` with text, language, provider, voice, model and SHA-256. Perturbed
 variants (noise at a stated SNR, gain, telephone band) are derived from the clean clips and
-carry the perturbation spec in their manifest. Report which clip set was used.
+carry the perturbation spec in their manifest. Run them with
+`iob run --modality audio --clips <dir>`: `results.json` records the clip directory under
+`pack.clips`, the HTML report shows it, and `iob compare` flags runs on different clip sets.
 
 An agent run in audio modality receives only audio. The `OracleTranscriber` returns the
 manifest text for a clip and exists to test the audio pipeline without an STT provider; it is

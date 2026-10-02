@@ -5,7 +5,30 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `iob run --clips <dir>` runs an audio suite on an alternate clip set such as `iob perturb`
+  output. `results.json` records it (`pack.clips`), the HTML report shows it and
+  `iob compare` flags runs on different clip sets. `iob perturb` prints the follow-up command.
+
+### Fixed
+- `iob --help` listed the compare command twice (`compare` and `compare-cmd`).
+- `python:<module>:<factory>` agent specs now find a module in the working directory, as the
+  README example implies; console scripts do not put it on `sys.path`.
+- Sandbox backend: `lookup_menu` with a non-string `query` raised an untraced
+  `AttributeError` (HTTP 500) instead of `invalid_args`; `update_line` accepted non-integer
+  quantities (`2.5`, `true`), which then made `results.json` unreadable; `modifiers` must be
+  a list of option-id strings, refused as `invalid_args` otherwise.
+- `iob synth` crashed with an `AssertionError` on a scenario that overrides `closing`,
+  `confirm`, `fallback` or `nudge` without an `id`. Such overrides are now synthesised to
+  `clips/<scenario>/<id>.wav` and `Pack.clip_path` prefers that clip, so audio runs no
+  longer fail with a missing clip or play the language default instead. The turn ids
+  `closing`, `confirm`, `fallback` and `nudge` are reserved for those overrides.
+- A text-modality run no longer records caller clips the agent was never sent, so the HTML
+  report of a text run shows no audio players and copies no clips.
+
 ### Changed
+- README: the reference-agent bugs are described accurately; a bug can also fail scenarios
+  of another category that depend on the same behaviour.
 - README rewritten for the public repository: comparison table, report screenshot.
 - 0.1.0 published to PyPI on 2026-10-01 through the trusted-publishing release workflow.
 

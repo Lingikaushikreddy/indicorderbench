@@ -34,6 +34,10 @@ class ReviewStatus(StrEnum):
     REVIEWED = "reviewed"
 
 
+# Ids of the per-language default turns. A scenario override of one keeps the same id.
+DEFAULT_TURN_IDS = ("closing", "confirm", "fallback", "nudge")
+
+
 class CallerTurn(BaseModel):
     id: str | None = None
     text: str = Field(min_length=1)
@@ -142,7 +146,15 @@ class CallerScript(BaseModel):
                 t.id = f"t{i + 1}"
             if t.id in seen:
                 raise ValueError(f"duplicate turn id {t.id}")
+            if t.id in DEFAULT_TURN_IDS:
+                raise ValueError(
+                    f"turn id {t.id!r} is reserved for the caller default of that name"
+                )
             seen.add(t.id)
+        for name in DEFAULT_TURN_IDS:
+            override: CallerTurn | None = getattr(self, name)
+            if override is not None and override.id is None:
+                override.id = name
         for patterns in (self.confirm_patterns, self.goodbye_patterns, self.question_patterns):
             if patterns is not None:
                 _compile_all(patterns)
@@ -151,11 +163,7 @@ class CallerScript(BaseModel):
     def resolved(self, defaults: CallerDefaults) -> ResolvedCallerScript:
         def pick(name: str, fallback_turn: CallerTurn) -> CallerTurn:
             turn: CallerTurn | None = getattr(self, name)
-            if turn is None:
-                return fallback_turn
-            if turn.id is None:
-                turn.id = name
-            return turn
+            return fallback_turn if turn is None else turn
 
         return ResolvedCallerScript(
             turns=list(self.turns),

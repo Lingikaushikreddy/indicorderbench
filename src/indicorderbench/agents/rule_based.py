@@ -3,7 +3,8 @@
 The agent parses each caller utterance with :mod:`indicorderbench.agents.parsing`, acts on
 the sandbox backend and replies with a short readback in the caller's language. ``bugs``
 toggles failures that leave the replies unchanged so that only the committed state reveals
-them; each bug breaks exactly one scenario category.
+them; each bug breaks every scenario of its own category (and any scenario of another
+category that depends on the same behaviour, such as a correction of a modifier).
 """
 
 from __future__ import annotations

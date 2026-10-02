@@ -185,6 +185,7 @@ class PackInfo(BaseModel):
     version: str
     content_hash: str
     path: str
+    clips: str | None = None  # an alternate clip directory (``--clips``), when one was used
 
 
 class AgentInfo(BaseModel):
