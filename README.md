@@ -25,6 +25,19 @@
   <a href="docs/scenarios.md">Write scenarios</a>
 </p>
 
+<p align="center">
+  <strong>Try it now, with nothing to install and no API keys</strong> (needs <a href="https://docs.astral.sh/uv/">uv</a>):
+</p>
+
+```bash
+uvx --from indicorderbench iob demo --out demo-out
+```
+
+<p align="center">
+  <img src="docs/images/iob-demo.gif" alt="Terminal recording of iob demo: a buggy reference agent fails 8 of 10 smoke scenarios, the fixed agent passes all 10, and a Hinglish call shows the agent reading back one wrap without onion while committing two wraps with onion" width="900"><br/>
+  <sub>Real output of the command above: the buggy agent passes 20%, the fixed agent 100%.</sub>
+</p>
+
 ---
 
 ## The problem in one call
@@ -69,7 +82,7 @@ so an agent change that starts placing wrong orders fails the build before it re
 ## Quick start
 
 ```bash
-pip install indicorderbench          # or: uv tool install indicorderbench
+pip install indicorderbench          # or: uv tool install indicorderbench, or skip installing with uvx
 
 iob demo --out demo-out              # buggy vs fixed reference agent, no network, no keys
 iob run starter --agent builtin:correct --tag smoke --trials 3
